@@ -52,19 +52,18 @@ public class MainActivity extends AppCompatActivity {
         content.put("to", "Device 2");
         content.put("chat_type", "inidividual");
         cc.send_message(inet, port, content);
+        this.display("Sent: ", content);
     }
 
-    public void display(HashMap<String, String> content) {
+    public void display(String label, HashMap<String, String> content) {
         Log.d(TAG, "Message received.");
         LinearLayout ll = (LinearLayout) findViewById(R.id.llayout);
         int width = (int) (400 * scale + 0.5f);
         int height = (int) (50 * scale + 0.5f);
-        for(HashMap.Entry<String, String> it: content.entrySet()) {
-            TextView tv = new TextView(this.getApplicationContext());
-            tv.setWidth(width);
-            tv.setHeight(height);
-            tv.setText(it.getKey() + " " + it.getValue());
-            ll.addView(tv);
-        }
+        TextView tv = new TextView(this);
+        tv.setWidth(width);
+        tv.setHeight(height);
+        tv.setText(label + content.get("text"));
+        ll.addView(tv);
     }
 }

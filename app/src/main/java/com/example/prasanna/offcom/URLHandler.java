@@ -60,7 +60,7 @@ public class URLHandler {
 
             else if (data.get("route").equals("share_file")) {
                 content = this.share_file();
-                callback.display(content);
+                this.send_display(content);
                 //Handle incoming file sharing message.
             }
 
@@ -117,7 +117,7 @@ public class URLHandler {
         callback.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                callback.display(content);
+                callback.display("Received: ", content);
             }
         });
     }
