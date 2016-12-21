@@ -42,11 +42,17 @@
         android:layout_height="wrap_content"
         android:text="send"
         android:onClick="send_message"/>
-    <LinearLayout
+    <ScrollView
         android:layout_below="@+id/sendbutton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/llayout"
-        android:orientation="vertical">
-    </LinearLayout>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_below="@+id/sendbutton"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/llayout"
+            android:orientation="vertical"
+            android:scrollbars="vertical">
+        </LinearLayout>
+    </ScrollView>
 </RelativeLayout>
