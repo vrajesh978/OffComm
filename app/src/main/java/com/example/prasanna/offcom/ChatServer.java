@@ -1,7 +1,6 @@
 package com.example.prasanna.offcom;
 
 import android.app.Activity;
-import android.support.v7.app.AppCompatActivity;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -17,6 +16,7 @@ public class ChatServer implements Runnable {
     ServerSocket mServer;
     static boolean mRunning;
     URLHandler handler;
+
     ChatServer(int port, Activity mainActivity) {
         mPort = port;
         handler = new URLHandler(mainActivity);
@@ -42,9 +42,15 @@ public class ChatServer implements Runnable {
             mServer = new ServerSocket(mPort);
             mPort = mServer.getLocalPort();
             while (mRunning) {
-                Socket client = mServer.accept();
-                handler.handle(client);
-                client.close();
+                final Socket client = mServer.accept();
+                new Thread( new Runnable() {
+                    public void run() {
+                        try {
+                            handler.handle(client);
+                            client.close();
+                        } catch (IOException e) {}
+                    }
+                }).start();
             }
         }
         catch (SocketException e) {}

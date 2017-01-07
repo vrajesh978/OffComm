@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         port = cs.mPort;
         scale = this.getResources().getDisplayMetrics().density;
     }
+
     public void set_ip_address(View view) {
         EditText ip = (EditText) findViewById(R.id.ipaddr);
         TextView port = (TextView) findViewById(R.id.port);
