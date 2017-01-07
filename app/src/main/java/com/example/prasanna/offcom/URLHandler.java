@@ -26,9 +26,11 @@ public class URLHandler {
     private InputStream sin;
     private MainActivity callback;
     HashMap<String, String> data;
+    AllMessages allMessages;
 
-    public URLHandler(Activity mainActivity) {
+    public URLHandler(Activity mainActivity, AllMessages allMessages) {
         callback = (MainActivity) mainActivity;
+        this.allMessages = allMessages;
     }
 
     public void handle(Socket socket) {
@@ -48,8 +50,7 @@ public class URLHandler {
             Log.d(TAG, "Message handler." );
             HashMap<String, String> content;
             if (data.get("route").equals("message")) {
-                content = this.handle_message();
-                this.send_display(content);
+                this.handle_message();
                 //Handle incoming messages.
             }
 
@@ -59,8 +60,6 @@ public class URLHandler {
             }
 
             else if (data.get("route").equals("share_file")) {
-                content = this.share_file();
-                this.send_display(content);
                 //Handle incoming file sharing message.
             }
 
@@ -72,14 +71,15 @@ public class URLHandler {
         } catch (IOException e) {}
     }
 
-    private HashMap<String, String> handle_message() {
-        HashMap<String , String> retMessage = new HashMap<String, String>();
-        retMessage.put("content_type", "message");
-        retMessage.put("text", data.get("text"));
-        retMessage.put("chat_type", data.get("chat_type"));
-        retMessage.put("to", data.get("to"));
-        retMessage.put("from", data.get("from"));
-        return retMessage;
+    private void handle_message() {
+        String text = data.get("text");
+        String sender = data.get("from");
+        String receiver = data.get("to");
+        boolean isFile = false;
+        boolean isGroup = data.get("chat_type").equals("individual") ? false : true;
+        Message m = new Message(text, sender, receiver, isFile, isGroup);
+        allMessages.addMessage(m);
+        this.send_display(m);
     }
 
     private void send_file() {
@@ -113,11 +113,11 @@ public class URLHandler {
         } catch (IOException e) {}
     }
 
-    private void send_display(final HashMap<String, String> content) {
+    private void send_display(final Message msg) {
         callback.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                callback.display("Received: ", content);
+                callback.display("Received: ", msg);
             }
         });
     }

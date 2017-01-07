@@ -24,11 +24,20 @@ public class MainActivity extends AppCompatActivity {
     Inet4Address inet;
     int port;
     float scale;
+    AllMessages allMessages;
+    ProtocolHandler protocol;
+    UserList ul;
+    GroupList gl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ChatServer cs = new ChatServer(5555, this);
+        protocol = new ProtocolHandler();
+        ul = new UserList();
+        gl = new GroupList();
+        allMessages = new AllMessages(ul, gl);
+        ChatServer cs = new ChatServer(5555, this, allMessages);
+
         cs.start();
         port = cs.mPort;
         scale = this.getResources().getDisplayMetrics().density;
@@ -46,17 +55,14 @@ public class MainActivity extends AppCompatActivity {
     public void send_message(View view) {
         EditText ed = (EditText) findViewById(R.id.edittext);
         ChatClient cc = new ChatClient();
-        HashMap<String, String> content = new HashMap<String, String>();
-        content.put("route", "message");
-        content.put("text", ed.getText().toString());
-        content.put("from", "Device 1");
-        content.put("to", "Device 2");
-        content.put("chat_type", "inidividual");
+        String text = ed.getText().toString();
+        Message msg = new Message(text, "Device 1", "Device 2", false, false);
+        HashMap<String, String> content = protocol.message_wrapper(msg);
         cc.send_message(inet, port, content);
-        this.display("Sent: ", content);
+        this.display("Sent: ", msg);
     }
 
-    public void display(String label, HashMap<String, String> content) {
+    public void display(String label, Message msg) {
         Log.d(TAG, "Message received.");
         LinearLayout ll = (LinearLayout) findViewById(R.id.llayout);
         int width = (int) (400 * scale + 0.5f);
@@ -64,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = new TextView(this);
         tv.setWidth(width);
         tv.setHeight(height);
-        tv.setText(label + content.get("text"));
+        tv.setText(label + msg.getText());
         ll.addView(tv);
     }
 }

@@ -16,10 +16,12 @@ public class ChatServer implements Runnable {
     ServerSocket mServer;
     static boolean mRunning;
     URLHandler handler;
+    AllMessages allMessages;
 
-    ChatServer(int port, Activity mainActivity) {
+    ChatServer(int port, Activity mainActivity, AllMessages allMessages) {
         mPort = port;
-        handler = new URLHandler(mainActivity);
+        this.allMessages = allMessages;
+        handler = new URLHandler(mainActivity, allMessages);
     }
 
     public void start() {
