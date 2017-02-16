@@ -24,6 +24,6 @@ public class UserList {
     }
 
     public List<UserInfo> getUsers() {
-        return (List<UserInfo>) userList.values();
+        return new ArrayList<UserInfo> (userList.values());
     }
 }

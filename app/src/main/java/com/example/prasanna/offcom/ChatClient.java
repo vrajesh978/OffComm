@@ -1,5 +1,7 @@
 package com.example.prasanna.offcom;
 
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.JsonWriter;
 import android.util.Log;
 
@@ -51,6 +53,7 @@ public class ChatClient {
             }
         }).start();
     }
+
 
     public void get_file(Inet4Address ip, int port) {
         // Download file shared by server.

@@ -1,7 +1,6 @@
 package com.example.prasanna.offcom;
 
-import java.io.*;
-import java.util.*;
+import java.util.HashMap;
 
 public class AllMessages {
 	private HashMap<String, PersonalMessage> pMsg;
@@ -10,8 +9,8 @@ public class AllMessages {
     GroupList gl;
 
 	public AllMessages(UserList ul, GroupList gl) {
-		pMsg = new HashMap<String,PersonalMessage>();
-		gMsg = new HashMap<String,GroupMessage>();
+		pMsg = new HashMap<>();
+		gMsg = new HashMap<>();
         this.ul = ul;
         this.gl = gl;
 	}

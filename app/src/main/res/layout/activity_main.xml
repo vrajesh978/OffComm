@@ -13,14 +13,14 @@
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:id="@+id/ipaddr"
-        android:text="IP Address"/>
+        android:hint="IP Address"/>
 
     <TextView
         android:layout_toRightOf="@+id/ipaddr"
         android:layout_width="70dp"
         android:layout_height="wrap_content"
         android:id="@+id/port"
-        android:text="Port"/>
+        android:hint="Port"/>
 
     <Button
         android:layout_toRightOf="@+id/port"
@@ -34,7 +34,7 @@
         android:id="@+id/edittext"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="Enter message"/>
+        android:hint="Enter message"/>
     <Button
         android:id="@+id/sendbutton"
         android:layout_below="@+id/edittext"

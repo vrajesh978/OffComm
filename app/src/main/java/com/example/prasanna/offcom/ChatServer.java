@@ -38,11 +38,14 @@ public class ChatServer implements Runnable {
             mServer = null;
         }
     }
+    public  void setLocalPort(int port) {
+        mPort = port;
+    }
 
     public void run() {
         try {
-            mServer = new ServerSocket(mPort);
-            mPort = mServer.getLocalPort();
+            mServer = new ServerSocket(0);
+            setLocalPort(mServer.getLocalPort());
             while (mRunning) {
                 final Socket client = mServer.accept();
                 new Thread( new Runnable() {
