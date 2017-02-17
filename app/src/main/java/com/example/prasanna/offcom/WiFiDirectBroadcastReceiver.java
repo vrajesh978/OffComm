@@ -11,6 +11,11 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,60 +28,27 @@ import static android.content.ContentValues.TAG;
  * Created by Vrajesh Mehta on 16/2/17.
  */
 
-public class WiFiDirectBroadcastReceiver extends android.content.BroadcastReceiver {
+public class WiFiDirectBroadcastReceiver {
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
     MainActivity activity;
     UserList ul;
 
-    private WifiP2pManager.PeerListListener peerListListener;
-    public List<WifiP2pDevice> peers;
+    HashMap<String, String> macMapping;
 
-    HashMap<String, String> buddies;
-    int SERVER_PORT = 0;
+    int MY_PORT;
+    Inet4Address MY_IP;
 
     public WiFiDirectBroadcastReceiver(
-            WifiP2pManager manager, WifiP2pManager.Channel channel, Context context,int port) {
+            WifiP2pManager manager, WifiP2pManager.Channel channel,
+            Context context, Inet4Address ip, int port) {
         mManager = manager;
         mChannel = channel;
         activity = (MainActivity) context;
         ul = GlobalVariables.getUserList();
-        buddies = new HashMap<>();
-        SERVER_PORT = port;
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
-        if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
-            // Determine if Wifi P2P mode is enabled or not, alert
-            // the Activity.
-            int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
-            if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
-                //activity.setIsWifiP2pEnabled(true);
-            } else {
-                //activity.setIsWifiP2pEnabled(false);
-            }
-        } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-
-            // The peer list has changed!  We should probably do something about
-            // that.
-            if (mManager != null) {
-                mManager.requestPeers(mChannel, peerListListener);
-            }
-
-        } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-
-            // Connection state changed!  We should probably do something about
-            // that.
-
-        } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-            /*DeviceListFragment fragment = (DeviceListFragment) activity.getFragmentManager()
-                    .findFragmentById(R.id.frag_list);
-            fragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(
-                    WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));*/
-
-        }
+        macMapping = new HashMap<>();
+        MY_PORT = port;
+        MY_IP = ip;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -105,8 +77,9 @@ public class WiFiDirectBroadcastReceiver extends android.content.BroadcastReceiv
     public void startRegistration() {
         //  Create a string map containing information about your service.
         Map record = new HashMap();
-        record.put("listenport", String.valueOf(SERVER_PORT));
-        record.put("buddyname", "Vrajesh" + (int) (Math.random() * 1000));
+        record.put("buddyname", "User " + (int) (Math.random() * 1000));
+        record.put("listenport", String.valueOf(MY_PORT));
+        record.put("listenip", MY_IP.getHostAddress());
         record.put("available", "visible");
 
         // Service information.  Pass it an instance name, service type
@@ -135,7 +108,7 @@ public class WiFiDirectBroadcastReceiver extends android.content.BroadcastReceiv
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    public void discoverService() {
+    public void initializeDiscoverService() {
         WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
             @Override
         /* Callback includes:
@@ -147,7 +120,30 @@ public class WiFiDirectBroadcastReceiver extends android.content.BroadcastReceiv
             public void onDnsSdTxtRecordAvailable(
                     String fullDomain, Map record, WifiP2pDevice device) {
                 Log.d(TAG, "DnsSdTxtRecord available -" + record.toString());
-                buddies.put(device.deviceAddress, (String) record.get("buddyname"));
+                // Put name in buddies list.
+                macMapping.put(device.deviceAddress, (String) record.get("buddyname"));
+
+                // Add user to global UserList.
+                final int port = Integer.parseInt((String) record.get("listenport"));
+                final String ip_string = (String) record.get("listenip");
+                final String userName = (String) record.get("buddyname");
+
+                if (ip_string != null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Inet4Address ip = (Inet4Address) Inet4Address.getByName(ip_string);
+                                if (ip != null) {
+                                    UserInfo u = new UserInfo(ip, port, userName);
+                                    ul.addUser(u);
+                                }
+                            } catch (UnknownHostException e) {
+                                Log.d(TAG, "Unknwon host exception.");
+                            }
+                        }
+                    }).start();
+                }
             }
         };
 
@@ -158,8 +154,8 @@ public class WiFiDirectBroadcastReceiver extends android.content.BroadcastReceiv
 
                 // Update the device name with the human-friendly version from
                 // the DnsTxtRecord, assuming one arrived.
-                resourceType.deviceName = buddies
-                        .containsKey(resourceType.deviceAddress) ? buddies
+                resourceType.deviceName = macMapping
+                        .containsKey(resourceType.deviceAddress) ? macMapping
                         .get(resourceType.deviceAddress) : resourceType.deviceName;
 
                 // Add to the custom adapter defined specifically for showing
@@ -191,39 +187,7 @@ public class WiFiDirectBroadcastReceiver extends android.content.BroadcastReceiv
                         // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
                         Log.d(TAG,"Failed service request");
                     }
-                });
-    }
-
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    public void initializePeerListener() {
-        peers = new ArrayList<WifiP2pDevice>();
-
-        peerListListener = new WifiP2pManager.PeerListListener() {
-            @Override
-            public void onPeersAvailable(WifiP2pDeviceList peerList) {
-
-                List<WifiP2pDevice> refreshedPeers = new ArrayList<>(peerList.getDeviceList());
-
-                if (!refreshedPeers.equals(peers)) {
-                    peers.clear();
-                    peers.addAll(refreshedPeers);
-                    // If an AdapterView is backed by this data, notify it
-                    // of the change.  For instance, if you have a ListView of
-                    // available peers, trigger an update.
-                    //((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged();
-
-                    // Perform any other updates needed based on the new list of
-                    // peers connected to the Wi-Fi P2P network.
-
                 }
-
-                if (peers.size() == 0) {
-                    Log.d(TAG, "No devices found");
-                    return;
-                }
-            }
-        };
+        );
     }
-
 }

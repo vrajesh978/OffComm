@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
@@ -61,19 +62,6 @@ public class MainActivity extends AppCompatActivity {
         cs.start();
         port = cs.mPort;
 
-        //WIFIp2p
-        //  Indicates a change in the Wi-Fi P2P status.
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-
-        // Indicates a change in the list of available peers.
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-
-        // Indicates the state of Wi-Fi P2P connectivity has changed.
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-
-        // Indicates this device's details have changed.
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
 
@@ -95,7 +83,17 @@ public class MainActivity extends AppCompatActivity {
         try {
             WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
             byte[] bytes = ByteBuffer.allocate(4).putInt(wm.getConnectionInfo().getIpAddress()).array();
-            Collections.reverse(Arrays.asList(bytes));
+            byte temp;
+
+            // Reverse bytes.
+            temp = bytes[0];
+            bytes[0] = bytes[3];
+            bytes[3] = temp;
+
+            temp = bytes[1];
+            bytes[1] = bytes[2];
+            bytes[2] = temp;
+
             ip = (Inet4Address) Inet4Address.getByAddress(bytes);
         } catch (Exception e) {}
 
@@ -127,16 +125,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void displayUsers(){
-        HashMap<String, String> userList = receiver.buddies;
+        List<UserInfo> userList = ul.getUsers();
         LinearLayout ll = (LinearLayout) findViewById(R.id.llayout);
-        //ll.removeAllViews();
-        for(String key: userList.keySet()){
+        ll.removeAllViews();
+        for(UserInfo u: userList){
             int width = (int) (400 * scale + 0.5f);
             int height = (int) (50 * scale + 0.5f);
             TextView tv = new TextView(this);
             tv.setWidth(width);
             tv.setHeight(height);
-            tv.setText(key + userList.get(key));
+            tv.setText(u.userName + " " + u.ip.getHostAddress() + " " + u.port);
             ll.addView(tv);
         }
     }
@@ -146,11 +144,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        receiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this,cs.mPort);
+        receiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this, localIp, cs.mPort);
         receiver.startRegistration();
-        receiver.discoverService();
-        receiver.initializePeerListener();
-        registerReceiver(receiver, intentFilter);
+        receiver.initializeDiscoverService();
         receiver.startDiscovery();
 
     }
@@ -158,6 +154,5 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        unregisterReceiver(receiver);
     }
 }
