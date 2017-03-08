@@ -15,23 +15,42 @@ public class AllMessages {
         this.gl = gl;
 	}
 	
-	public void addMessage(Message msg) {
+	public void addSentMessage(Message msg) {
 		if(msg.isGroup()) {
-			GroupMessage groupmsg = gMsg.get(msg.getSender());
+			GroupMessage groupmsg = gMsg.get(msg.getReceiver());
             if (groupmsg == null) {
-                gMsg.put(msg.getSender(), new GroupMessage(gl.getGroup(msg.getReceiver())));
-                groupmsg = gMsg.get(msg.getSender());
+                gMsg.put(msg.getReceiver(), new GroupMessage(gl.getGroup(msg.getReceiver())));
+                groupmsg = gMsg.get(msg.getReceiver());
             }
 			groupmsg.addMessage(msg);			
 		}
 		else {
-			PersonalMessage personalmsg = pMsg.get(msg.getSender());
+			PersonalMessage personalmsg = pMsg.get(msg.getReceiver());
+            if (personalmsg== null) {
+                pMsg.put(msg.getReceiver(), new PersonalMessage(ul.getUser(msg.getReceiver())));
+                personalmsg = pMsg.get(msg.getReceiver());
+            }
+			personalmsg.addMessage(msg);
+		}
+	}
+
+	public void addReceivedMessage(Message msg) {
+        if(msg.isGroup()) {
+            GroupMessage groupmsg = gMsg.get(msg.getSender());
+            if (groupmsg == null) {
+                gMsg.put(msg.getSender(), new GroupMessage(gl.getGroup(msg.getSender())));
+                groupmsg = gMsg.get(msg.getSender());
+            }
+            groupmsg.addMessage(msg);
+        }
+        else {
+            PersonalMessage personalmsg = pMsg.get(msg.getSender());
             if (personalmsg== null) {
                 pMsg.put(msg.getSender(), new PersonalMessage(ul.getUser(msg.getSender())));
                 personalmsg = pMsg.get(msg.getSender());
             }
-			personalmsg.addMessage(msg);
-		}
+            personalmsg.addMessage(msg);
+        }
 	}
 	
 	public PersonalMessage getMessagesForUser(String name) {

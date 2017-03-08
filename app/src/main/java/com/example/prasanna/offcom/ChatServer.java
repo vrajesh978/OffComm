@@ -18,10 +18,9 @@ public class ChatServer implements Runnable {
     URLHandler handler;
     AllMessages allMessages;
 
-    ChatServer(int port, Activity mainActivity, AllMessages allMessages) {
-        mPort = port;
+    ChatServer(AllMessages allMessages) {
         this.allMessages = allMessages;
-        handler = new URLHandler(mainActivity, allMessages);
+        handler = new URLHandler(allMessages);
     }
 
     public void start() {

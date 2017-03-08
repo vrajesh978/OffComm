@@ -7,7 +7,7 @@ import java.util.HashMap;
  */
 
 public class ProtocolHandler {
-    public HashMap<String, String> message_wrapper(Message msg) {
+    public static HashMap<String, String> message_wrapper(Message msg) {
         HashMap<String, String> content = new HashMap<>();
         content.put("route", "message");
         content.put("text", msg.getText());

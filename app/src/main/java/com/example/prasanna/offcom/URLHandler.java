@@ -24,12 +24,12 @@ public class URLHandler {
     private PrintStream out;
     private OutputStream sout;
     private InputStream sin;
-    private MainActivity callback;
+    private static ChatActivity callback;
     HashMap<String, String> data;
     AllMessages allMessages;
 
-    public URLHandler(Activity mainActivity, AllMessages allMessages) {
-        callback = (MainActivity) mainActivity;
+    public URLHandler(AllMessages allMessages) {
+        callback = null;
         this.allMessages = allMessages;
     }
 
@@ -77,8 +77,9 @@ public class URLHandler {
         String receiver = data.get("to");
         boolean isFile = false;
         boolean isGroup = data.get("chat_type").equals("individual") ? false : true;
-        Message m = new Message(text, sender, receiver, isFile, isGroup);
-        allMessages.addMessage(m);
+        // Message(txt, to, from, isfile, isgroup)
+        Message m = new Message(text, receiver, sender, isFile, isGroup);
+        allMessages.addReceivedMessage(m);
         this.send_display(m);
     }
 
@@ -114,11 +115,21 @@ public class URLHandler {
     }
 
     private void send_display(final Message msg) {
-        callback.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                callback.display("Received: ", msg);
-            }
-        });
+        if (callback != null) {
+            callback.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    callback.displayMessage();
+                }
+            });
+        }
+    }
+
+    public static void setChatActivity(Activity activity) {
+        callback = (ChatActivity) activity;
+    }
+
+    public static void removeChatActivity() {
+        callback = null;
     }
 }

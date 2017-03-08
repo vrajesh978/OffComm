@@ -8,8 +8,10 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.RunnableFuture;
 
@@ -37,12 +39,14 @@ public class ChatClient {
         jw.flush();
     }
 
-    public void send_message(final Inet4Address ip, final int port, final HashMap<String, String> content) {
+    public void send_message(final String ip, final int port, final HashMap<String, String> content)
+            throws UnknownHostException {
+        final Inet4Address inet = (Inet4Address) InetAddress.getByName(ip);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    connect_socket(ip, port);
+                    connect_socket(inet, port);
                     send_data(content);
                     socket.close();
                 } catch (IOException e) {

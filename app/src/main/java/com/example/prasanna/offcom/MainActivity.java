@@ -1,7 +1,9 @@
 package com.example.prasanna.offcom;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Build;
@@ -13,6 +15,11 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -27,10 +34,10 @@ import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
     Inet4Address localIp;
-    Inet4Address inet;
-
-    int port;
     float scale;
+    int port;
+    String myUserName;
+    boolean isUserNameSet;
 
     AllMessages allMessages;
     ProtocolHandler protocol;
@@ -40,41 +47,34 @@ public class MainActivity extends AppCompatActivity {
 
     ChatServer cs;
 
-
-    IntentFilter intentFilter = new IntentFilter();
     WifiP2pManager.Channel mChannel;
     WifiP2pManager mManager;
 
     WiFiDirectBroadcastReceiver receiver;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
-    protected void onCreate(Bundle savedInstanceState)  {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         protocol = new ProtocolHandler();
-        localIp = get_ip_address();
         ul = GlobalVariables.getUserList();
         gl = GlobalVariables.getGroupList();
-        allMessages = new AllMessages(ul, gl);
-        cs = new ChatServer(0, this, allMessages);
-
-        cs.start();
-        port = cs.mPort;
-
+        allMessages = GlobalVariables.getAllMessages();
+        cs = new ChatServer(allMessages);
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
 
-        scale = this.getResources().getDisplayMetrics().density;
-    }
-
-    public void set_ip_address(View view) {
-        EditText ip = (EditText) findViewById(R.id.ipaddr);
-        TextView port = (TextView) findViewById(R.id.port);
-        port.setText(new Integer(this.port).toString());
-        try {
-            inet = (Inet4Address) InetAddress.getByName(ip.getText().toString());
-        } catch (UnknownHostException e) {}
+        cs.start();
+        isUserNameSet = false;
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public Inet4Address get_ip_address() {
@@ -95,64 +95,88 @@ public class MainActivity extends AppCompatActivity {
             bytes[2] = temp;
 
             ip = (Inet4Address) Inet4Address.getByAddress(bytes);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         return ip;
     }
 
-
-
-    public void send_message(View view) {
-        EditText ed = (EditText) findViewById(R.id.edittext);
-        ChatClient cc = new ChatClient();
-        String text = ed.getText().toString();
-        Message msg = new Message(text, "Device 1", "Device 2", false, false);
-        HashMap<String, String> content = protocol.message_wrapper(msg);
-        cc.send_message(inet, port, content);
-        this.display("Sent: ", msg);
-    }
-
-    public void display(String label, Message msg) {
-        Log.d(TAG, "Message received.");
-        LinearLayout ll = (LinearLayout) findViewById(R.id.llayout);
-        int width = (int) (400 * scale + 0.5f);
-        int height = (int) (50 * scale + 0.5f);
-        TextView tv = new TextView(this);
-        tv.setWidth(width);
-        tv.setHeight(height);
-        tv.setText(label + msg.getText());
-        ll.addView(tv);
-    }
-
-    public void displayUsers(){
+    public void displayUsers() {
         List<UserInfo> userList = ul.getUsers();
         LinearLayout ll = (LinearLayout) findViewById(R.id.llayout);
         ll.removeAllViews();
-        for(UserInfo u: userList){
+        for (final UserInfo u : userList) {
             int width = (int) (400 * scale + 0.5f);
             int height = (int) (50 * scale + 0.5f);
             TextView tv = new TextView(this);
             tv.setWidth(width);
             tv.setHeight(height);
             tv.setText(u.userName + " " + u.ip + " " + u.port);
+
+            // Set on click.
+            tv.setClickable(true);
+            tv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    goToChat(u);
+                }
+            });
+
             ll.addView(tv);
         }
     }
 
-    /** register the BroadcastReceiver with the intent values to be matched */
+    public void goToChat(UserInfo user) {
+        if (isUserNameSet) {
+            Intent intent = new Intent(this, ChatActivity.class);
+            intent.putExtra("recipientUser", user.userName);
+            intent.putExtra("selfUser", myUserName);
+            startActivity(intent);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    public void setUserName(View view) {
+        EditText userNameBox = (EditText) findViewById(R.id.myUserName);
+        myUserName = userNameBox.getText().toString();
+        isUserNameSet = true;
+        receiver = null;
+        receiver = new WiFiDirectBroadcastReceiver(
+                mManager, mChannel, this, localIp, cs.mPort, myUserName);
+        receiver.startRegistration();
+        receiver.initializeDiscoverService();
+        receiver.startDiscovery();
+    }
+
+    /**
+     * register the BroadcastReceiver with the intent values to be matched
+     */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onResume() {
         super.onResume();
-        receiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this, localIp, cs.mPort);
-        receiver.startRegistration();
-        receiver.initializeDiscoverService();
-        receiver.startDiscovery();
+        localIp = get_ip_address();
+        scale = this.getResources().getDisplayMetrics().density;
+        port = cs.mPort;
+        if (isUserNameSet) {
+            receiver = new WiFiDirectBroadcastReceiver(
+                    mManager, mChannel, this, localIp, cs.mPort, myUserName);
+            receiver.startRegistration();
+            receiver.initializeDiscoverService();
+            receiver.startDiscovery();
+        }
 
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        receiver = null;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        receiver = null;
     }
 }

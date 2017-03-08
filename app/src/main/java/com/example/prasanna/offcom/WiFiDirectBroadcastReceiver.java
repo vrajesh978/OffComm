@@ -38,10 +38,11 @@ public class WiFiDirectBroadcastReceiver {
 
     int MY_PORT;
     Inet4Address MY_IP;
+    String userName;
 
     public WiFiDirectBroadcastReceiver(
             WifiP2pManager manager, WifiP2pManager.Channel channel,
-            Context context, Inet4Address ip, int port) {
+            Context context, Inet4Address ip, int port, String name) {
         mManager = manager;
         mChannel = channel;
         activity = (MainActivity) context;
@@ -49,6 +50,7 @@ public class WiFiDirectBroadcastReceiver {
         macMapping = new HashMap<>();
         MY_PORT = port;
         MY_IP = ip;
+        userName = name;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -77,7 +79,7 @@ public class WiFiDirectBroadcastReceiver {
     public void startRegistration() {
         //  Create a string map containing information about your service.
         Map record = new HashMap();
-        record.put("buddyname", "User " + (int) (Math.random() * 1000));
+        record.put("buddyname", userName);
         record.put("listenport", String.valueOf(MY_PORT));
         record.put("listenip", MY_IP.getHostAddress());
         record.put("available", "visible");

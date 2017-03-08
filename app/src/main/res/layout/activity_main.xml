@@ -9,47 +9,26 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.prasanna.offcom.MainActivity">
-    <EditText
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/ipaddr"
-        android:hint="IP Address"/>
-
-    <TextView
-        android:layout_toRightOf="@+id/ipaddr"
-        android:layout_width="70dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/port"
-        android:hint="Port"/>
-
-    <Button
-        android:layout_toRightOf="@+id/port"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="set ip"
-        android:onClick="set_ip_address"/>
 
     <EditText
-        android:layout_below="@+id/ipaddr"
-        android:id="@+id/edittext"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:hint="Enter message"/>
+        android:layout_width="250dp"
+        android:layout_height="50dp"
+        android:hint="username"
+        android:id="@+id/myUserName"/>
     <Button
-        android:id="@+id/sendbutton"
-        android:layout_below="@+id/edittext"
-        android:layout_width="wrap_content"
+        android:layout_width="100dp"
+        android:text="set username"
         android:layout_height="wrap_content"
-        android:text="send"
-        android:onClick="send_message"/>
+        android:layout_toRightOf="@id/myUserName"
+        android:onClick="setUserName"/>
     <ScrollView
-        android:layout_below="@+id/sendbutton"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_below="@+id/myUserName">
         <LinearLayout
             android:layout_below="@+id/sendbutton"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:id="@+id/llayout"
             android:orientation="vertical"
             android:scrollbars="vertical">
