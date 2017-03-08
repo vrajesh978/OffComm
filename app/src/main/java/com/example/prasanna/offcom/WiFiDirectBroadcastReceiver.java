@@ -127,23 +127,8 @@ public class WiFiDirectBroadcastReceiver {
                 final int port = Integer.parseInt((String) record.get("listenport"));
                 final String ip_string = (String) record.get("listenip");
                 final String userName = (String) record.get("buddyname");
-
-                if (ip_string != null) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Inet4Address ip = (Inet4Address) Inet4Address.getByName(ip_string);
-                                if (ip != null) {
-                                    UserInfo u = new UserInfo(ip, port, userName);
-                                    ul.addUser(u);
-                                }
-                            } catch (UnknownHostException e) {
-                                Log.d(TAG, "Unknwon host exception.");
-                            }
-                        }
-                    }).start();
-                }
+                UserInfo u = new UserInfo(ip_string, port, userName);
+                ul.addUser(u);
             }
         };
 

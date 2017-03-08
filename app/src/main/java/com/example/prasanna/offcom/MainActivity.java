@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             TextView tv = new TextView(this);
             tv.setWidth(width);
             tv.setHeight(height);
-            tv.setText(u.userName + " " + u.ip.getHostAddress() + " " + u.port);
+            tv.setText(u.userName + " " + u.ip + " " + u.port);
             ll.addView(tv);
         }
     }

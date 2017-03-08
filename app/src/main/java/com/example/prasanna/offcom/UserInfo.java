@@ -7,11 +7,11 @@ import java.net.Inet4Address;
  */
 
 public class UserInfo {
-    Inet4Address ip;
+    String ip;
     int port;
     String userName;
 
-    public UserInfo(Inet4Address ip, int port, String userName) {
+    public UserInfo(String ip, int port, String userName) {
         this.ip = ip;
         this.port = port;
         this.userName = userName;
