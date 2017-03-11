@@ -80,7 +80,7 @@ public class URLHandler {
         // Message(txt, to, from, isfile, isgroup)
         Message m = new Message(text, receiver, sender, isFile, isGroup);
         allMessages.addReceivedMessage(m);
-        this.send_display(m);
+        this.send_display();
     }
 
     private void send_file() {
@@ -114,7 +114,7 @@ public class URLHandler {
         } catch (IOException e) {}
     }
 
-    private void send_display(final Message msg) {
+    private void send_display() {
         if (callback != null) {
             callback.runOnUiThread(new Runnable() {
                 @Override
