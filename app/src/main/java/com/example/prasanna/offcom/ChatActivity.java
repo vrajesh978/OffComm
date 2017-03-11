@@ -38,6 +38,8 @@ public class ChatActivity extends AppCompatActivity {
         allMessages = GlobalVariables.getAllMessages();
         cursor = 0;
 
+        // Show already received messages.
+        this.displayMessage();
     }
 
     @Override
