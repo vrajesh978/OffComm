@@ -2,35 +2,20 @@ package com.example.prasanna.offcom;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
-
 import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
-import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
     Inet4Address localIp;
@@ -49,13 +34,9 @@ public class MainActivity extends AppCompatActivity {
 
     WifiP2pManager.Channel mChannel;
     WifiP2pManager mManager;
+    NSDManager mNSDManager;
 
     WiFiDirectBroadcastReceiver receiver;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
@@ -67,14 +48,13 @@ public class MainActivity extends AppCompatActivity {
         gl = GlobalVariables.getGroupList();
         allMessages = GlobalVariables.getAllMessages();
         cs = new ChatServer(allMessages);
+
+        /* WiFI P2p peer discrovery.
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mChannel = mManager.initialize(this, getMainLooper(), null);*/
 
         cs.start();
         isUserNameSet = false;
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public Inet4Address get_ip_address() {
@@ -130,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
         if (isUserNameSet) {
             Intent intent = new Intent(this, ChatActivity.class);
             intent.putExtra("recipientUser", user.userName);
-            intent.putExtra("selfUser", myUserName);
             startActivity(intent);
         }
     }
@@ -139,13 +118,29 @@ public class MainActivity extends AppCompatActivity {
     public void setUserName(View view) {
         EditText userNameBox = (EditText) findViewById(R.id.myUserName);
         myUserName = userNameBox.getText().toString();
+        // Set username.
         isUserNameSet = true;
+        GlobalVariables.setMyUserName(myUserName);
+
+        // start peer service discovery.
+        /* WiFI P2p peer discovery.
         receiver = null;
         receiver = new WiFiDirectBroadcastReceiver(
                 mManager, mChannel, this, localIp, cs.mPort, myUserName);
         receiver.startRegistration();
         receiver.initializeDiscoverService();
-        receiver.startDiscovery();
+        receiver.startDiscovery();*/
+
+        // NSDManager.
+        if (mNSDManager != null) {
+            mNSDManager.stopDiscovery();
+            mNSDManager.tearDown();
+            mNSDManager = null;
+        }
+        mNSDManager= new NSDManager(this, myUserName);
+        mNSDManager.initializeNsd();
+        mNSDManager.registerService(cs.mPort);
+        mNSDManager.discoverServices();
     }
 
     /**
@@ -159,24 +154,55 @@ public class MainActivity extends AppCompatActivity {
         scale = this.getResources().getDisplayMetrics().density;
         port = cs.mPort;
         if (isUserNameSet) {
+            /* WiFi P2p peer discovery
             receiver = new WiFiDirectBroadcastReceiver(
                     mManager, mChannel, this, localIp, cs.mPort, myUserName);
             receiver.startRegistration();
             receiver.initializeDiscoverService();
-            receiver.startDiscovery();
+            receiver.startDiscovery();*/
+
+            // NSDManager.
+            mNSDManager= new NSDManager(this, myUserName);
+            mNSDManager.initializeNsd();
+            mNSDManager.registerService(cs.mPort);
+            mNSDManager.discoverServices();
         }
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onPause() {
+        /* WiFi P2p peer discovery
+        receiver.stopDiscovery();
+        receiver = null;*/
+        if (mNSDManager != null) {
+            mNSDManager.stopDiscovery();
+        }
         super.onPause();
-        receiver = null;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    public void onDestroy() {
+        mNSDManager.tearDown();
+        mNSDManager = null;
+        /* WiFi P2p peer discovery.
+        receiver.stopDiscovery();
+        receiver = null;*/
+        super.onDestroy();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onStop() {
+        if (mNSDManager != null) {
+            mNSDManager.tearDown();
+            mNSDManager = null;
+        }
+        /* WiFi P2p peer discovery.
+        receiver.stopDiscovery();
+        receiver = null;*/
         super.onStop();
-        receiver = null;
     }
 }
