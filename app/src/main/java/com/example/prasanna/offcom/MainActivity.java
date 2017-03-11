@@ -185,8 +185,10 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onDestroy() {
-        mNSDManager.tearDown();
-        mNSDManager = null;
+        if (mNSDManager != null) {
+            mNSDManager.tearDown();
+            mNSDManager = null;
+        }
         /* WiFi P2p peer discovery.
         receiver.stopDiscovery();
         receiver = null;*/
