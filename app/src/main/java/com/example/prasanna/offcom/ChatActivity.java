@@ -39,7 +39,7 @@ public class ChatActivity extends AppCompatActivity {
         cursor = 0;
 
         // Show already received messages.
-        this.displayMessage();
+        this.checkExisitingMessages();
     }
 
     @Override
@@ -84,6 +84,17 @@ public class ChatActivity extends AppCompatActivity {
         // Scroll to bottom of messages.
         ScrollView scroll = (ScrollView) findViewById(R.id.chatScroll);
         scroll.fullScroll(View.FOCUS_DOWN);
+    }
+
+    public void checkExisitingMessages() {
+        try {
+            PersonalMessage pm = allMessages.getMessagesForUser(currentUser.userName);
+            if (pm != null) {
+                this.displayMessage();
+            }
+        } catch (NullPointerException e) {
+            // No existing messages are available.
+        }
     }
 
     public void sendMessage(View view) {
