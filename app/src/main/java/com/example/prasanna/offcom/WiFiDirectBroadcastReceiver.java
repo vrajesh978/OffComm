@@ -181,8 +181,12 @@ public class WiFiDirectBroadcastReceiver {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void stopDiscovery() {
+        mManager.stopPeerDiscovery(mChannel, peerDiscoveryListner);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    public void tearDown() {
         mManager.removeLocalService(mChannel, serviceInfo, registrationListner);
         mManager.removeServiceRequest(mChannel, serviceRequest, serviceListener);
-        mManager.stopPeerDiscovery(mChannel, peerDiscoveryListner);
     }
 }

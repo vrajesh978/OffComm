@@ -51,11 +51,6 @@ public class MainActivity extends AppCompatActivity {
     WifiP2pManager mManager;
 
     WiFiDirectBroadcastReceiver receiver;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
@@ -72,9 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
         cs.start();
         isUserNameSet = false;
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public Inet4Address get_ip_address() {
@@ -140,7 +132,13 @@ public class MainActivity extends AppCompatActivity {
         EditText userNameBox = (EditText) findViewById(R.id.myUserName);
         myUserName = userNameBox.getText().toString();
         isUserNameSet = true;
-        receiver = null;
+
+        // Stop peer discovery before registering new service.
+        if (receiver != null) {
+            receiver.stopDiscovery();
+            receiver.tearDown();
+            receiver = null;
+        }
         receiver = new WiFiDirectBroadcastReceiver(
                 mManager, mChannel, this, localIp, cs.mPort, myUserName);
         receiver.startRegistration();
@@ -168,15 +166,32 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onPause() {
+        if (receiver != null) {
+            receiver.stopDiscovery();
+        }
         super.onPause();
-        receiver = null;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onStop() {
+        if (receiver != null) {
+            receiver.stopDiscovery();
+            receiver.tearDown();
+        }
         super.onStop();
-        receiver = null;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    public void onDestroy() {
+        if (receiver != null) {
+            receiver.stopDiscovery();
+            receiver.tearDown();
+        }
+        super.onDestroy();
     }
 }
