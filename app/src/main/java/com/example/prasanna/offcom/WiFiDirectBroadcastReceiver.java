@@ -24,16 +24,17 @@ import java.util.Map;
 import static android.content.ContentValues.TAG;
 
 
-/**
- * Created by Vrajesh Mehta on 16/2/17.
- */
-
 public class WiFiDirectBroadcastReceiver {
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
+    WifiP2pDnsSdServiceRequest serviceRequest;
+    WifiP2pManager.ActionListener serviceListener;
+    WifiP2pManager.ActionListener registrationListner;
+    WifiP2pManager.ActionListener peerDiscoveryListner;
+    WifiP2pDnsSdServiceInfo serviceInfo;
+
     MainActivity activity;
     UserList ul;
-
     HashMap<String, String> macMapping;
 
     int MY_PORT;
@@ -55,12 +56,12 @@ public class WiFiDirectBroadcastReceiver {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void startDiscovery() {
-        mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
+        peerDiscoveryListner = new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
                 // Success!
-                Log.d(TAG,"Discovery start");
+                Log.d(TAG, "Discovery start");
             }
 
             @Override
@@ -70,9 +71,9 @@ public class WiFiDirectBroadcastReceiver {
                     Log.d(TAG, "P2P isn't supported on this device.");
                 }
             }
-        });
+        };
 
-
+        mManager.discoverServices(mChannel, peerDiscoveryListner);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -87,26 +88,27 @@ public class WiFiDirectBroadcastReceiver {
         // Service information.  Pass it an instance name, service type
         // _protocol._transportlayer , and the map containing
         // information other devices will want once they connect to this one.
-        WifiP2pDnsSdServiceInfo serviceInfo =
-                WifiP2pDnsSdServiceInfo.newInstance("offcom", "_offcom._tcp", record);
+        serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("offcom", "_offcom._tcp", record);
 
         // Add the local service, sending the service info, network channel,
         // and listener that will be used to indicate success or failure of
         // the request.
-        mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
+        registrationListner = new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 // Command successful! Code isn't necessarily needed here,
                 // Unless you want to update the UI or add logging statements.
-                Log.d(TAG,"Registration successful");
+                Log.d(TAG, "Registration successful");
             }
 
             @Override
             public void onFailure(int arg0) {
                 // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                Log.d(TAG,"Registration unsuccessful");
+                Log.d(TAG, "Registration unsuccessful");
             }
-        });
+
+        };
+        mManager.addLocalService(mChannel, serviceInfo, registrationListner);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -153,28 +155,38 @@ public class WiFiDirectBroadcastReceiver {
                         activity.displayUsers();
                     }
                 });
-                Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
+                Log.d(TAG, "ServiceAvailable " + instanceName);
             }
         };
 
         mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
 
-        WifiP2pDnsSdServiceRequest serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
-        mManager.addServiceRequest(mChannel,
-                serviceRequest,
-                new WifiP2pManager.ActionListener() {
-                    @Override
-                    public void onSuccess() {
-                        // Success!
-                        Log.d(TAG,"service request success");
-                    }
+        serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
 
-                    @Override
-                    public void onFailure(int code) {
-                        // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                        Log.d(TAG,"Failed service request");
-                    }
-                }
-        );
+        serviceListener = new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                // Success!
+                Log.d(TAG,"service request success");
+            }
+
+            @Override
+            public void onFailure(int code) {
+                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
+                Log.d(TAG,"Failed service request");
+            }
+        };
+        mManager.addServiceRequest(mChannel, serviceRequest, serviceListener);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    public void stopDiscovery() {
+        mManager.stopPeerDiscovery(mChannel, peerDiscoveryListner);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    public void tearDown() {
+        mManager.removeLocalService(mChannel, serviceInfo, registrationListner);
+        mManager.removeServiceRequest(mChannel, serviceRequest, serviceListener);
     }
 }

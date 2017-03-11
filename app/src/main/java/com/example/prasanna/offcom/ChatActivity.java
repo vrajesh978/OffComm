@@ -45,7 +45,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onResume();
         scale = this.getResources().getDisplayMetrics().density;
         currentUser = ul.getUser(intent.getStringExtra("recipientUser"));
-        myUserName = intent.getStringExtra("selfUser");
+        myUserName = GlobalVariables.getMyUserName();
         URLHandler.setChatActivity(this);
 
         // Show username of current user.
@@ -54,9 +54,15 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onDestroy() {
         URLHandler.removeChatActivity();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onStop() {
+        URLHandler.removeChatActivity();
+        super.onStop();
     }
 
     public void displayMessage() {
