@@ -8,6 +8,7 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -122,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
         if (isUserNameSet) {
             Intent intent = new Intent(this, ChatActivity.class);
             intent.putExtra("recipientUser", user.userName);
-            intent.putExtra("selfUser", myUserName);
             startActivity(intent);
         }
     }
@@ -131,7 +131,9 @@ public class MainActivity extends AppCompatActivity {
     public void setUserName(View view) {
         EditText userNameBox = (EditText) findViewById(R.id.myUserName);
         myUserName = userNameBox.getText().toString();
+        // Set username.
         isUserNameSet = true;
+        GlobalVariables.setMyUserName(myUserName);
 
         // Stop peer discovery before registering new service.
         if (receiver != null) {
