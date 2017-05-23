@@ -36,7 +36,7 @@ public class AllMessages {
 
 	public void addReceivedMessage(Message msg) {
         if(msg.isGroup()) {
-            GroupMessage groupmsg = gMsg.get(msg.getSender());
+            GroupMessage groupmsg = gMsg.get(msg.getReceiver());
             if (groupmsg == null) {
                 gMsg.put(msg.getSender(), new GroupMessage(gl.getGroup(msg.getSender())));
                 groupmsg = gMsg.get(msg.getSender());

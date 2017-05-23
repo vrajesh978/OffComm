@@ -14,6 +14,10 @@ public class GroupInfo {
         groupParticipants.add(u);
     }
 
+    public void addUsersToGroup(List<UserInfo> userList) {
+        this.groupParticipants = userList;
+    }
+
     public List<UserInfo> getGroupParticipant() {
         return groupParticipants;
     }

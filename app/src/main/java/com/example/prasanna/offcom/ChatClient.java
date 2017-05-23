@@ -23,13 +23,16 @@ import static android.content.ContentValues.TAG;
 
 public class ChatClient {
     Socket socket;
-    private void connect_socket(Inet4Address ip, int port) throws SocketException, IOException{
+    UserList ul = GlobalVariables.getUserList();
+    GroupList gl = GlobalVariables.getGroupList();
+
+    private void connectSocket(Inet4Address ip, int port) throws SocketException, IOException{
         Log.d(TAG, "Connecting to socket");
         socket = new Socket(ip, port);
         Log.d(TAG, "Connected to socket");
     }
 
-    private void send_data(HashMap<String, String> content) throws IOException{
+    private void _sendData(HashMap<String, String> content) throws IOException{
         JsonWriter jw = new JsonWriter(new OutputStreamWriter(socket.getOutputStream()));
         jw.beginObject();
         for (HashMap.Entry<String, String> it : content.entrySet()) {
@@ -39,25 +42,63 @@ public class ChatClient {
         jw.flush();
     }
 
-    public void send_message(final String ip, final int port, final HashMap<String, String> content)
-            throws UnknownHostException {
-        final Inet4Address inet = (Inet4Address) InetAddress.getByName(ip);
+    public void sendData(final UserInfo u, final HashMap<String, String> content) throws UnknownHostException {
+        final Inet4Address inet = (Inet4Address) InetAddress.getByName(u.ip);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    connect_socket(inet, port);
-                    send_data(content);
+                    connectSocket(inet, u.port);
+                    _sendData(content);
                     socket.close();
+                    Log.d(TAG, "Data sent to " + u.userName);
                 } catch (IOException e) {
                     Log.w(TAG, "Could not connect to other device: ");
-                    //Could not connect to server;
                 }
-                Log.d(TAG, "Message sent.");
             }
         }).start();
     }
 
+    public void sendMessage(Message msg) throws UnknownHostException {
+        boolean isGroup = msg.isGroup();
+        final HashMap<String, String> content = ProtocolHandler.messageWrapper(msg);
+        if (isGroup) {
+            GroupInfo g = gl.getGroup(msg.getReceiver());
+
+            for (final UserInfo u: g.getGroupParticipant()) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            sendData(u, content);
+                        }
+                        catch (UnknownHostException e) {};
+                    }
+                }).start();
+            }
+
+        }
+        else {
+            final UserInfo u = ul.getUser(msg.getReceiver());
+            sendData(u, content);
+        }
+
+    }
+
+    public void sendGroupCreationMessage(GroupInfo g) {
+        final HashMap<String, String> content = ProtocolHandler.groupCreationWrapper(g);
+        for (final UserInfo u: g.getGroupParticipant()) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        sendData(u, content);
+                    }
+                    catch (UnknownHostException e) {};
+                }
+            }).start();
+        }
+    }
 
     public void get_file(Inet4Address ip, int port) {
         // Download file shared by server.

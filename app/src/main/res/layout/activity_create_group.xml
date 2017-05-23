@@ -11,26 +11,26 @@
     tools:context="com.example.prasanna.offcom.MainActivity">
 
     <EditText
+        android:id="@+id/groupName"
         android:layout_width="250dp"
         android:layout_height="50dp"
-        android:hint="username"
-        android:id="@+id/myUserName"/>
+        android:hint="group name" />
     <Button
         android:layout_width="100dp"
-        android:text="set username"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/myUserName"
-        android:onClick="setUserName"/>
+        android:layout_toRightOf="@id/groupName"
+        android:text="set username"
+        android:onClick="setGroupName"/>
     <ScrollView
-        android:id="@+id/userScrollView"
+        android:id="@+id/groupUserScrollView"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:layout_below="@+id/myUserName">
+        android:layout_below="@id/groupName">
         <LinearLayout
-            android:layout_below="@+id/sendbutton"
+            android:id="@+id/groupUsers"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/llayout"
+            android:layout_below="@id/groupName"
             android:orientation="vertical"
             android:scrollbars="vertical">
         </LinearLayout>
@@ -38,7 +38,7 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_below="@id/userScrollView"
+        android:layout_below="@id/groupUserScrollView"
         android:text="create group"
         android:onClick="createGroup"/>
 </RelativeLayout>

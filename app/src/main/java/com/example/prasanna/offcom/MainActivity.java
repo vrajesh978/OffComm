@@ -12,49 +12,91 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.io.ByteArrayInputStream;
+import java.math.BigInteger;
 import java.net.Inet4Address;
+import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Formatter;
 import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
-    Inet4Address localIp;
-    float scale;
-    int port;
-    String myUserName;
-    boolean isUserNameSet;
+    private float scale;
+    private int port;
+    private String myUserName;
+    private boolean isUserNameSet;
 
-    AllMessages allMessages;
-    ProtocolHandler protocol;
+    private Inet4Address localIp;
 
-    UserList ul;
-    GroupList gl;
-
-    ChatServer cs;
-
-    WifiP2pManager.Channel mChannel;
-    WifiP2pManager mManager;
     NSDManager mNSDManager;
 
-    WiFiDirectBroadcastReceiver receiver;
+    private AllMessages allMessages;
+    private UserList ul = GlobalVariables.getUserList();
+    private GroupList gl = GlobalVariables.getGroupList();
+    private ChatServer cs;
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        protocol = new ProtocolHandler();
-        ul = GlobalVariables.getUserList();
-        gl = GlobalVariables.getGroupList();
         allMessages = GlobalVariables.getAllMessages();
         cs = new ChatServer(allMessages);
-
-        /* WiFI P2p peer discrovery.
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);*/
-
         cs.start();
         isUserNameSet = false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    public void onResume() {
+        super.onResume();
+        localIp = get_ip_address();
+        port = cs.mPort;
+        if (isUserNameSet) {
+            // NSDManager.
+            mNSDManager= new NSDManager(this, myUserName);
+            mNSDManager.initializeNsd();
+            mNSDManager.registerService(cs.mPort);
+            mNSDManager.discoverServices();
+        }
+        URLHandler.setActivity(this);
+
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    public void onPause() {
+        URLHandler.removeActivity();
+        if (mNSDManager != null) {
+            mNSDManager.stopDiscovery();
+        }
+        super.onPause();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    public void onDestroy() {
+        URLHandler.removeActivity();
+        if (mNSDManager != null) {
+            mNSDManager.tearDown();
+            mNSDManager = null;
+        }
+        super.onDestroy();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    public void onStop() {
+        URLHandler.removeActivity();
+        if (mNSDManager != null) {
+            mNSDManager.tearDown();
+            mNSDManager = null;
+        }
+        super.onStop();
     }
 
     public Inet4Address get_ip_address() {
@@ -62,17 +104,12 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
-            byte[] bytes = ByteBuffer.allocate(4).putInt(wm.getConnectionInfo().getIpAddress()).array();
+            byte[] bytes = BigInteger.valueOf(wm.getConnectionInfo().getIpAddress()).toByteArray();
             byte temp;
 
             // Reverse bytes.
-            temp = bytes[0];
-            bytes[0] = bytes[3];
-            bytes[3] = temp;
-
-            temp = bytes[1];
-            bytes[1] = bytes[2];
-            bytes[2] = temp;
+            temp = bytes[0]; bytes[0] = bytes[3]; bytes[3] = temp;
+            temp = bytes[1]; bytes[1] = bytes[2]; bytes[2] = temp;
 
             ip = (Inet4Address) Inet4Address.getByAddress(bytes);
         } catch (Exception e) {
@@ -86,34 +123,55 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout ll = (LinearLayout) findViewById(R.id.llayout);
         ll.removeAllViews();
         for (final UserInfo u : userList) {
-            int width = (int) (400 * scale + 0.5f);
-            int height = (int) (50 * scale + 0.5f);
-            TextView tv = new TextView(this);
-            tv.setWidth(width);
-            tv.setHeight(height);
-            tv.setText(u.userName + " " + u.ip + " " + u.port);
+            TextView userNameView = ViewWrapper.createUserNameView(u, this);
 
             // Set on click.
-            tv.setClickable(true);
-            tv.setOnClickListener(new View.OnClickListener() {
+            userNameView.setClickable(true);
+            userNameView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     goToChat(u);
                 }
             });
 
-            ll.addView(tv);
+            ll.addView(userNameView);
+        }
+
+        List<GroupInfo> groupList = gl.getGroups();
+        for (final GroupInfo g : groupList) {
+            TextView groupNameView = ViewWrapper.createGroupNameView(g, this);
+
+            // Set on click.
+            groupNameView.setClickable(true);
+            groupNameView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    goToGroupChat(g);
+                }
+            });
+
+            ll.addView(groupNameView);
         }
     }
 
     public void goToChat(UserInfo user) {
         if (isUserNameSet) {
             Intent intent = new Intent(this, ChatActivity.class);
-            intent.putExtra("recipientUser", user.userName);
+            intent.putExtra("recipient", user.userName);
+            intent.putExtra("isGroup", false);
             startActivity(intent);
         }
     }
 
+    public void goToGroupChat(GroupInfo g) {
+        if(isUserNameSet) {
+            Intent intent = new Intent(this, ChatActivity.class);
+            intent.putExtra("recipient", g.getName());
+            intent.putExtra("isGroup", true);
+            startActivity(intent);
+        }
+    }
+    
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void setUserName(View view) {
         EditText userNameBox = (EditText) findViewById(R.id.myUserName);
@@ -121,15 +179,6 @@ public class MainActivity extends AppCompatActivity {
         // Set username.
         isUserNameSet = true;
         GlobalVariables.setMyUserName(myUserName);
-
-        // start peer service discovery.
-        /* WiFI P2p peer discovery.
-        receiver = null;
-        receiver = new WiFiDirectBroadcastReceiver(
-                mManager, mChannel, this, localIp, cs.mPort, myUserName);
-        receiver.startRegistration();
-        receiver.initializeDiscoverService();
-        receiver.startDiscovery();*/
 
         // NSDManager.
         if (mNSDManager != null) {
@@ -143,68 +192,8 @@ public class MainActivity extends AppCompatActivity {
         mNSDManager.discoverServices();
     }
 
-    /**
-     * register the BroadcastReceiver with the intent values to be matched
-     */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    @Override
-    public void onResume() {
-        super.onResume();
-        localIp = get_ip_address();
-        scale = this.getResources().getDisplayMetrics().density;
-        port = cs.mPort;
-        if (isUserNameSet) {
-            /* WiFi P2p peer discovery
-            receiver = new WiFiDirectBroadcastReceiver(
-                    mManager, mChannel, this, localIp, cs.mPort, myUserName);
-            receiver.startRegistration();
-            receiver.initializeDiscoverService();
-            receiver.startDiscovery();*/
-
-            // NSDManager.
-            mNSDManager= new NSDManager(this, myUserName);
-            mNSDManager.initializeNsd();
-            mNSDManager.registerService(cs.mPort);
-            mNSDManager.discoverServices();
-        }
-
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    @Override
-    public void onPause() {
-        /* WiFi P2p peer discovery
-        receiver.stopDiscovery();
-        receiver = null;*/
-        if (mNSDManager != null) {
-            mNSDManager.stopDiscovery();
-        }
-        super.onPause();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    @Override
-    public void onDestroy() {
-        if (mNSDManager != null) {
-            mNSDManager.tearDown();
-            mNSDManager = null;
-        }
-        /* WiFi P2p peer discovery.
-        receiver.stopDiscovery();
-        receiver = null;*/
-        super.onDestroy();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    @Override
-    public void onStop() {
-        if (mNSDManager != null) {
-            mNSDManager.tearDown();
-            mNSDManager = null;
-        }
-        /* WiFi P2p peer discovery.
-        receiver.stopDiscovery();
-        receiver = null;*/
-        super.onStop();
+    public void createGroup(View view) {
+        Intent intent = new Intent(this, CreateGroupActivity.class);
+        startActivity(intent);
     }
 }

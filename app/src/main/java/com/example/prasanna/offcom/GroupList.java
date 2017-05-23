@@ -1,5 +1,6 @@
 package com.example.prasanna.offcom;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class GroupList {
     }
 
     public List<GroupInfo> getGroups() {
-        return (List<GroupInfo>) groupList.values();
+        return (List<GroupInfo>) new ArrayList<GroupInfo>(groupList.values());
     }
 
     public void addToGroup(String name, UserInfo u) {

@@ -11,6 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 import java.net.UnknownHostException;
 import java.util.HashMap;
 
@@ -22,10 +24,11 @@ public class ChatActivity extends AppCompatActivity {
     Intent intent;
     UserList ul;
     GroupList gl;
-    UserInfo currentUser;
+    String currentRecipient;
     String myUserName;
     AllMessages allMessages;
     int cursor;
+    boolean isGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,41 +49,49 @@ public class ChatActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         scale = this.getResources().getDisplayMetrics().density;
-        currentUser = ul.getUser(intent.getStringExtra("recipientUser"));
-        myUserName = GlobalVariables.getMyUserName();
-        URLHandler.setChatActivity(this);
+        isGroup = intent.getBooleanExtra("isGroup", false);
+        currentRecipient = intent.getStringExtra("recipient");
 
-        // Show username of current user.
+        myUserName = GlobalVariables.getMyUserName();
+        URLHandler.setActivity(this);
+
+        // Show name of current recipient.
         TextView name = (TextView) findViewById(R.id.userName);
-        name.setText(currentUser.userName);
+        name.setText(currentRecipient);
+    }
+
+    public void onPause() {
+        URLHandler.removeActivity();
+        super.onPause();
     }
 
     @Override
     public void onDestroy() {
-        URLHandler.removeChatActivity();
+        URLHandler.removeActivity();
         super.onDestroy();
     }
 
     @Override
     public void onStop() {
-        URLHandler.removeChatActivity();
+        URLHandler.removeActivity();
         super.onStop();
     }
 
     public void displayMessage() {
-        PersonalMessage pm = allMessages.getMessagesForUser(currentUser.userName);
-        LinearLayout ll = (LinearLayout) findViewById(R.id.messageList);
-        for (Message msg: pm.messageList.subList(cursor, pm.messageList.size())) {
-            int width = (int) (400 * scale + 0.5f);
-            int height = (int) (50 * scale + 0.5f);
-            TextView tv = new TextView(this);
-            tv.setWidth(width);
-            tv.setHeight(height);
-            tv.setText(msg.getSender()+ ": " + msg.getText());
-            ll.addView(tv);
+        MessageList msgList;
+        if (isGroup) {
+            msgList = allMessages.getMessagesForGroup(currentRecipient);
         }
-        cursor = pm.messageList.size();
+        else {
+            msgList = allMessages.getMessagesForUser(currentRecipient);
+        }
 
+        LinearLayout ll = (LinearLayout) findViewById(R.id.messageList);
+        for (Message msg: msgList.messageList.subList(cursor, msgList.messageList.size())) {
+            TextView msgView = ViewWrapper.getMessageBox(msg, this);
+            ll.addView(msgView);
+        }
+        cursor = msgList.messageList.size();
         // Scroll to bottom of messages.
         ScrollView scroll = (ScrollView) findViewById(R.id.chatScroll);
         scroll.fullScroll(View.FOCUS_DOWN);
@@ -88,8 +99,15 @@ public class ChatActivity extends AppCompatActivity {
 
     public void checkExisitingMessages() {
         try {
-            PersonalMessage pm = allMessages.getMessagesForUser(currentUser.userName);
-            if (pm != null) {
+            // TODO: Optimize this code.
+            MessageList msgList;
+            if (isGroup) {
+                msgList = allMessages.getMessagesForGroup(currentRecipient);
+            }
+            else {
+                msgList = allMessages.getMessagesForUser(currentRecipient);
+            }
+            if (msgList != null) {
                 this.displayMessage();
             }
         } catch (NullPointerException e) {
@@ -98,17 +116,22 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     public void sendMessage(View view) {
-        ChatClient cc = new ChatClient();
         EditText ed = (EditText) findViewById(R.id.chatText);
         String text = ed.getText().toString();
-        Message msg = new Message(text, currentUser.userName, myUserName, false, false);
+
+        Message msg;
+        if (isGroup)
+            msg = new Message(text, currentRecipient, myUserName, false, true);
+        else
+            msg = new Message(text, currentRecipient, myUserName, false, false);
+
+        ChatClient cc = new ChatClient();
         allMessages.addSentMessage(msg);
-        HashMap<String, String> content = ProtocolHandler.message_wrapper(msg);
 
         try {
-            cc.send_message(currentUser.ip, currentUser.port, content);
+            cc.sendMessage(msg);
         } catch (UnknownHostException e) {
-            Log.d(TAG, "No host found for " + currentUser.userName + " user.");
+            Log.d(TAG, "No host found for " + currentRecipient);
         }
         this.displayMessage();
     }

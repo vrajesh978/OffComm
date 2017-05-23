@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.net.InterfaceAddress;
 import java.net.Socket;
 import java.util.HashMap;
 
@@ -24,9 +25,12 @@ public class URLHandler {
     private PrintStream out;
     private OutputStream sout;
     private InputStream sin;
-    private static ChatActivity callback;
+    private static Activity callback;
     HashMap<String, String> data;
     AllMessages allMessages;
+
+    UserList ul = GlobalVariables.getUserList();
+    GroupList gl = GlobalVariables.getGroupList();
 
     public URLHandler(AllMessages allMessages) {
         callback = null;
@@ -49,29 +53,32 @@ public class URLHandler {
 
             Log.d(TAG, "Message handler." );
             HashMap<String, String> content;
-            if (data.get("route").equals("message")) {
-                this.handle_message();
-                //Handle incoming messages.
-            }
+            switch (data.get("route")) {
+                case "message":
+                    this.handleMessage();
+                    break;
 
-            else if (data.get("route").equals("get_file")) {
-                this.send_file();
-                //Handle incoming file request.
-            }
+                case "groupCreationMessage":
+                    this.handleGroupCreationMessage();
+                    break;
 
-            else if (data.get("route").equals("share_file")) {
-                //Handle incoming file sharing message.
-            }
+                case "getFile":
+                    break;
 
-            else if(data.get("route").equals("username_verification")) {
-                //Verify new user name.
-            }
+                case "shareFile":
+                    break;
 
+                case "usernameVerification":
+                    break;
+
+                default:
+                    Log.w(TAG, "Unknown route: " + data.get("route"));
+            }
 
         } catch (IOException e) {}
     }
 
-    private void handle_message() {
+    private void handleMessage() {
         String text = data.get("text");
         String sender = data.get("from");
         String receiver = data.get("to");
@@ -80,7 +87,30 @@ public class URLHandler {
         // Message(txt, to, from, isfile, isgroup)
         Message m = new Message(text, receiver, sender, isFile, isGroup);
         allMessages.addReceivedMessage(m);
-        this.send_display();
+        this.displayMessage();
+    }
+
+    private void handleGroupCreationMessage() {
+        String groupName = data.get("groupName");
+        String userList = data.get("participants");
+        String[] userInfo = userList.split(",");
+
+        GroupInfo g = new GroupInfo(groupName);
+        for (String user: userInfo) {
+            if (user.length() > 0) {
+                String[] userData = user.split(" ");
+                String username = userData[0];
+                String ip = userData[1];
+                int port = Integer.parseInt(userData[2]);
+                UserInfo u = ul.getUser(username);
+                if(u == null) {
+                    u = new UserInfo(ip, port, username);
+                }
+                g.addUserToGroup(u);
+            }
+        }
+        gl.addGroup(g);
+        this.displayUsers();
     }
 
     private void send_file() {
@@ -114,22 +144,33 @@ public class URLHandler {
         } catch (IOException e) {}
     }
 
-    private void send_display() {
+    private void displayMessage() {
         if (callback != null) {
             callback.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    callback.displayMessage();
+                    ((ChatActivity) callback).displayMessage();
                 }
             });
         }
     }
 
-    public static void setChatActivity(Activity activity) {
-        callback = (ChatActivity) activity;
+    private void displayUsers() {
+        if (callback != null) {
+            callback.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ((MainActivity) callback).displayUsers();
+                }
+            });
+        }
     }
 
-    public static void removeChatActivity() {
+    public static void setActivity(Activity activity) {
+        callback = activity;
+    }
+
+    public static void removeActivity() {
         callback = null;
     }
 }
