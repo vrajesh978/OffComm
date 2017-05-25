@@ -32,6 +32,7 @@ public class URLHandler {
     UserList ul = GlobalVariables.getUserList();
     GroupList gl = GlobalVariables.getGroupList();
 
+    public URLHandler(){}
     public URLHandler(AllMessages allMessages) {
         callback = null;
         this.allMessages = allMessages;
@@ -145,21 +146,30 @@ public class URLHandler {
     }
 
     private void displayMessage() {
-        if (callback != null) {
+        Log.d(TAG, "displayMessage: calling display msg from urlHandler after getting msg ");
+        //Log.d(TAG,callback.toString());
+        //not working
+        if (callback == null) {
+            Log.d(TAG,"no callback");
+        }else {
             callback.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Log.d(TAG, "displayMessage:run method called display msg from urlHandler");
                     ((ChatActivity) callback).displayMessage();
                 }
+
             });
         }
     }
 
     private void displayUsers() {
+        //Log.d(TAG,callback.toString());
         if (callback != null) {
             callback.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Log.d(TAG, "displayUsers:run method called display msg from urlHandler");
                     ((MainActivity) callback).displayUsers();
                 }
             });
@@ -167,10 +177,12 @@ public class URLHandler {
     }
 
     public static void setActivity(Activity activity) {
+        Log.d(TAG,"setActivity called" + activity.toString());
         callback = activity;
     }
 
     public static void removeActivity() {
+        //Log.d(TAG,"destroy called" + callback.toString());
         callback = null;
     }
 }

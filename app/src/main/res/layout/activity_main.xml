@@ -40,5 +40,5 @@
         android:layout_height="50dp"
         android:layout_below="@id/userScrollView"
         android:text="create group"
-        android:onClick="createGroup"/>
+        android:onClick="createGroupEntry"/>
 </RelativeLayout>

@@ -1,6 +1,10 @@
 package com.example.prasanna.offcom;
 
+import android.util.Log;
+
 import java.util.HashMap;
+
+import static android.content.ContentValues.TAG;
 
 public class AllMessages {
 	private HashMap<String, PersonalMessage> pMsg;
@@ -38,8 +42,8 @@ public class AllMessages {
         if(msg.isGroup()) {
             GroupMessage groupmsg = gMsg.get(msg.getReceiver());
             if (groupmsg == null) {
-                gMsg.put(msg.getSender(), new GroupMessage(gl.getGroup(msg.getSender())));
-                groupmsg = gMsg.get(msg.getSender());
+                gMsg.put(msg.getSender(), new GroupMessage(gl.getGroup(msg.getSender()))); //getSender
+                groupmsg = gMsg.get(msg.getSender()); //getSender
             }
             groupmsg.addMessage(msg);
         }
@@ -48,8 +52,10 @@ public class AllMessages {
             if (personalmsg== null) {
                 pMsg.put(msg.getSender(), new PersonalMessage(ul.getUser(msg.getSender())));
                 personalmsg = pMsg.get(msg.getSender());
+                Log.d(TAG, "addReceivedMessage: first msg ");
             }
             personalmsg.addMessage(msg);
+            Log.d(TAG, "addReceivedMessage: msg  added to list");
         }
 	}
 	

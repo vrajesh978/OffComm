@@ -1,5 +1,6 @@
 package com.example.prasanna.offcom;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,11 +31,13 @@ public class ChatActivity extends AppCompatActivity {
     int cursor;
     boolean isGroup;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        URLHandler.setActivity(this);
         intent = getIntent();
         ul = GlobalVariables.getUserList();
         gl = GlobalVariables.getGroupList();
@@ -47,13 +50,14 @@ public class ChatActivity extends AppCompatActivity {
 
     @Override
     public void onResume() {
+        URLHandler.setActivity(this);
         super.onResume();
         scale = this.getResources().getDisplayMetrics().density;
         isGroup = intent.getBooleanExtra("isGroup", false);
         currentRecipient = intent.getStringExtra("recipient");
 
         myUserName = GlobalVariables.getMyUserName();
-        URLHandler.setActivity(this);
+
 
         // Show name of current recipient.
         TextView name = (TextView) findViewById(R.id.userName);
@@ -61,7 +65,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     public void onPause() {
-        URLHandler.removeActivity();
+        //URLHandler.removeActivity();
         super.onPause();
     }
 
@@ -84,14 +88,15 @@ public class ChatActivity extends AppCompatActivity {
         }
         else {
             msgList = allMessages.getMessagesForUser(currentRecipient);
+            Log.d(TAG,"messages size = " + msgList.getMessageList().size());
         }
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.messageList);
-        for (Message msg: msgList.messageList.subList(cursor, msgList.messageList.size())) {
+        for (Message msg: msgList.getMessageList().subList(cursor, msgList.getMessageList().size())) {
             TextView msgView = ViewWrapper.getMessageBox(msg, this);
             ll.addView(msgView);
         }
-        cursor = msgList.messageList.size();
+        cursor = msgList.getMessageList().size();
         // Scroll to bottom of messages.
         ScrollView scroll = (ScrollView) findViewById(R.id.chatScroll);
         scroll.fullScroll(View.FOCUS_DOWN);
@@ -115,6 +120,9 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    /*public Activity getActivity(){
+        return this;
+    }*/
     public void sendMessage(View view) {
         EditText ed = (EditText) findViewById(R.id.chatText);
         String text = ed.getText().toString();
@@ -133,6 +141,7 @@ public class ChatActivity extends AppCompatActivity {
         } catch (UnknownHostException e) {
             Log.d(TAG, "No host found for " + currentRecipient);
         }
+        Log.d(TAG,"u r about to call chatActivity's displayMessage method");
         this.displayMessage();
     }
 }

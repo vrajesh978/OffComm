@@ -5,6 +5,9 @@ import java.util.ArrayList;
 /**
  * Created by prasanna on 23/5/17.
  */
+
+
+
 public class MessageList {
     protected ArrayList<Message> messageList;
 

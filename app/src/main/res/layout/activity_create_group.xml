@@ -15,12 +15,13 @@
         android:layout_width="250dp"
         android:layout_height="50dp"
         android:hint="group name" />
+
     <Button
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/groupName"
-        android:text="set username"
-        android:onClick="setGroupName"/>
+        android:onClick="setGroupName"
+        android:text="set" />
     <ScrollView
         android:id="@+id/groupUserScrollView"
         android:layout_width="match_parent"
@@ -35,10 +36,11 @@
             android:scrollbars="vertical">
         </LinearLayout>
     </ScrollView>
+
     <Button
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_below="@id/groupUserScrollView"
-        android:text="create group"
-        android:onClick="createGroup"/>
+        android:onClick="createGroup"
+        android:text="DONE" />
 </RelativeLayout>

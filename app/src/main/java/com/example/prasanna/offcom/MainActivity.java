@@ -1,11 +1,12 @@
 package com.example.prasanna.offcom;
 
-import android.content.Context;
+
 import android.content.Intent;
 import android.net.wifi.WifiManager;
-import android.net.wifi.p2p.WifiP2pManager;
+
 import android.os.Build;
 import android.os.Bundle;
+
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -13,14 +14,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.io.ByteArrayInputStream;
+
 import java.math.BigInteger;
 import java.net.Inet4Address;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Formatter;
 import java.util.List;
 
 
@@ -29,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private int port;
     private String myUserName;
     private boolean isUserNameSet;
+
 
     private Inet4Address localIp;
 
@@ -48,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         cs = new ChatServer(allMessages);
         cs.start();
         isUserNameSet = false;
+        URLHandler.setActivity(this);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -70,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onPause() {
-        URLHandler.removeActivity();
+        //urlHandler.removeActivity();
         if (mNSDManager != null) {
             mNSDManager.stopDiscovery();
         }
@@ -103,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         Inet4Address ip = null;
 
         try {
-            WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+            WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
             byte[] bytes = BigInteger.valueOf(wm.getConnectionInfo().getIpAddress()).toByteArray();
             byte temp;
 
@@ -192,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
         mNSDManager.discoverServices();
     }
 
-    public void createGroup(View view) {
+    public void createGroupEntry(View view) {
         Intent intent = new Intent(this, CreateGroupActivity.class);
         startActivity(intent);
     }

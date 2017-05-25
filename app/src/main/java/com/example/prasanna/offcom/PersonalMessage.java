@@ -6,7 +6,7 @@ public class PersonalMessage extends MessageList{
     UserInfo userInfo;
 	
 	public PersonalMessage(UserInfo u) {
-		messageList = new ArrayList<Message>();
+		messageList = new ArrayList<>();
         userInfo = u;
 	}
 
