@@ -1,5 +1,7 @@
 package com.example.prasanna.offcom;
 
+import android.util.Log;
+
 import java.util.*;
 
 public class GroupInfo {
@@ -11,6 +13,7 @@ public class GroupInfo {
         groupParticipants = new ArrayList<UserInfo>();
     }
     public void addUserToGroup(UserInfo u) {
+        //Log.d("AdduserTOGruop","USERNAME = " + u.userName + " IS ADDED TO GROUP");
         groupParticipants.add(u);
     }
 

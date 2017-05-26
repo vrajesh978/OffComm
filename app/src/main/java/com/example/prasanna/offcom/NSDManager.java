@@ -11,18 +11,18 @@ import static android.content.ContentValues.TAG;
 
 public class NSDManager {
 
-    Context mContext;
+    private Context mContext;
 
-    NsdManager mNsdManager;
-    NsdManager.DiscoveryListener mDiscoveryListener;
-    NsdManager.RegistrationListener mRegistrationListener;
+    private NsdManager mNsdManager;
+    private NsdManager.DiscoveryListener mDiscoveryListener;
+    private NsdManager.RegistrationListener mRegistrationListener;
 
     public static final String SERVICE_TYPE = "_offcom._tcp.";
 
     public String mServiceName = "offcom_";
 
-    NsdServiceInfo mService;
-    UserList ul;
+    private NsdServiceInfo mService;
+    private UserList ul;
 
     public NSDManager(Context context, String serviceName) {
         mContext = context;

@@ -1,6 +1,10 @@
 package com.example.prasanna.offcom;
 
+import android.util.Log;
+
 import java.util.HashMap;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by prasanna on 7/1/17.
@@ -21,12 +25,13 @@ public class ProtocolHandler {
         HashMap<String, String> content = new HashMap<>();
         content.put("route", "groupCreationMessage");
         content.put("groupName", group.getName());
-
-        String userList = "";
+        //getting own machine details
+        String userList = MainActivity.getMyDetails();
+        //getting group participants.
         for (UserInfo u: group.getGroupParticipant()) {
             userList += u.userName + " " + u.ip + " " + u.port + ",";
         }
-
+        //send these details to the group members.
         content.put("participants", userList);
         return content;
     }

@@ -13,10 +13,10 @@ import java.net.SocketException;
 
 public class ChatServer implements Runnable {
     static int mPort;
-    ServerSocket mServer;
-    static boolean mRunning;
-    URLHandler handler;
-    AllMessages allMessages;
+    private ServerSocket mServer;
+    private static boolean mRunning;
+    private URLHandler handler;
+    private AllMessages allMessages;
 
     ChatServer(AllMessages allMessages) {
         this.allMessages = allMessages;

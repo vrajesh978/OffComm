@@ -22,22 +22,24 @@ import static android.content.ContentValues.TAG;
 public class ChatActivity extends AppCompatActivity {
 
     float scale;
-    Intent intent;
-    UserList ul;
-    GroupList gl;
-    String currentRecipient;
-    String myUserName;
-    AllMessages allMessages;
-    int cursor;
-    boolean isGroup;
+    private Intent intent;
+    private UserList ul;
+    private GroupList gl;
+    private String currentRecipient;
+    private String myUserName;
+    private AllMessages allMessages;
+    private int cursor;
+    private boolean isGroup;
+    private  static ChatActivity chatActivity;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        chatActivity = this;
         setContentView(R.layout.activity_chat);
-
-        URLHandler.setActivity(this);
+        Log.d(TAG,"CHATACTIVITY ON-CREATE METHOD CALLED");
+        //URLHandler.setActivity(this);
         intent = getIntent();
         ul = GlobalVariables.getUserList();
         gl = GlobalVariables.getGroupList();
@@ -50,6 +52,7 @@ public class ChatActivity extends AppCompatActivity {
 
     @Override
     public void onResume() {
+        //Log.d(TAG,"CHATACTIVITY ON-RESUME METHOD CALLED");
         URLHandler.setActivity(this);
         super.onResume();
         scale = this.getResources().getDisplayMetrics().density;
@@ -65,7 +68,8 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     public void onPause() {
-        //URLHandler.removeActivity();
+        //Log.d(TAG,"CHATACTIVITY ON-PAUSE METHOD CALLED");
+        URLHandler.removeActivity();
         super.onPause();
     }
 
@@ -77,7 +81,8 @@ public class ChatActivity extends AppCompatActivity {
 
     @Override
     public void onStop() {
-        URLHandler.removeActivity();
+        //Log.d(TAG,"CHATACTIVITY ON-CREATE METHOD CALLED");
+        //URLHandler.removeActivity();
         super.onStop();
     }
 
@@ -85,6 +90,7 @@ public class ChatActivity extends AppCompatActivity {
         MessageList msgList;
         if (isGroup) {
             msgList = allMessages.getMessagesForGroup(currentRecipient);
+            Log.d(TAG,"messages size = " + msgList.messageList.size());
         }
         else {
             msgList = allMessages.getMessagesForUser(currentRecipient);
@@ -141,7 +147,15 @@ public class ChatActivity extends AppCompatActivity {
         } catch (UnknownHostException e) {
             Log.d(TAG, "No host found for " + currentRecipient);
         }
-        Log.d(TAG,"u r about to call chatActivity's displayMessage method");
+        //Log.d(TAG,"u r about to call chatActivity's displayMessage method");
         this.displayMessage();
     }
+
+
+    //get the instance of ChatActivity
+    public static ChatActivity getInstance(){
+        return  chatActivity;
+    }
 }
+
+
