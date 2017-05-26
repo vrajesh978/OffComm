@@ -32,7 +32,6 @@ public class URLHandler {
     UserList ul = GlobalVariables.getUserList();
     GroupList gl = GlobalVariables.getGroupList();
 
-    public URLHandler(){}
     public URLHandler(AllMessages allMessages) {
         callback = null;
         this.allMessages = allMessages;
@@ -103,10 +102,13 @@ public class URLHandler {
                 String username = userData[0];
                 String ip = userData[1];
                 int port = Integer.parseInt(userData[2]);
+                Log.d(TAG,"username = " + username + " ip = " + ip + " port = " + port);
                 UserInfo u = ul.getUser(username);
                 if(u == null) {
                     u = new UserInfo(ip, port, username);
                 }
+                if(u.userName.equals(MainActivity.getMyUserName()))
+                    continue;
                 g.addUserToGroup(u);
             }
         }
@@ -149,10 +151,12 @@ public class URLHandler {
         Log.d(TAG, "displayMessage: calling display msg from urlHandler after getting msg ");
         //Log.d(TAG,callback.toString());
         //not working
+        callback = ChatActivity.getInstance();
         if (callback == null) {
+            callback = ChatActivity.getInstance();
             Log.d(TAG,"no callback");
-        }else {
-            callback.runOnUiThread(new Runnable() {
+        }
+        callback.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     Log.d(TAG, "displayMessage:run method called display msg from urlHandler");
@@ -160,11 +164,12 @@ public class URLHandler {
                 }
 
             });
-        }
+
     }
 
     private void displayUsers() {
         //Log.d(TAG,callback.toString());
+        callback = MainActivity.getInstance();
         if (callback != null) {
             callback.runOnUiThread(new Runnable() {
                 @Override
@@ -183,6 +188,7 @@ public class URLHandler {
 
     public static void removeActivity() {
         //Log.d(TAG,"destroy called" + callback.toString());
-        callback = null;
+        if(callback.equals(Activity.class))
+            callback = null;
     }
 }

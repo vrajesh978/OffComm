@@ -1,7 +1,10 @@
 package com.example.prasanna.offcom;
 
+import android.content.Intent;
+import android.nfc.Tag;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -29,6 +32,7 @@ public class CreateGroupActivity extends AppCompatActivity {
         scale = this.getResources().getDisplayMetrics().density;
 
         List<UserInfo> userList = ul.getUsers();
+        Log.d("onresume " , "userlist size" + userList.size() );
         LinearLayout ll = (LinearLayout) findViewById(R.id.groupUsers);
         ll.removeAllViews();
         for (final UserInfo u : userList) {
@@ -59,6 +63,7 @@ public class CreateGroupActivity extends AppCompatActivity {
     public void setGroupName(View view) {
         EditText groupName = (EditText) findViewById(R.id.groupName);
         this.groupName = groupName.getText().toString();
+        Log.d("group name = ","group name =  " + this.groupName);
     }
 
     public void createGroup(View view) {
@@ -74,7 +79,8 @@ public class CreateGroupActivity extends AppCompatActivity {
                 cc.sendGroupCreationMessage(gi);
             }
         }).start();
-
         finishActivity(0);
+
+
     }
 }

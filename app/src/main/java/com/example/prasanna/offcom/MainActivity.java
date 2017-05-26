@@ -9,6 +9,7 @@ import android.os.Bundle;
 
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -19,15 +20,17 @@ import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.util.List;
 
+import static android.content.ContentValues.TAG;
+
 
 public class MainActivity extends AppCompatActivity {
     private float scale;
-    private int port;
-    private String myUserName;
+    private static int port;
+    private static String myUserName;
     private boolean isUserNameSet;
+    private static MainActivity mainActivity;
 
-
-    private Inet4Address localIp;
+    private static Inet4Address localIp;
 
     NSDManager mNSDManager;
 
@@ -39,18 +42,23 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG,"MAINACTIVITY ON-CREATE METHOD CALLED");
+        //URLHandler.setActivity(this);
+        mainActivity = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         allMessages = GlobalVariables.getAllMessages();
         cs = new ChatServer(allMessages);
         cs.start();
         isUserNameSet = false;
-        URLHandler.setActivity(this);
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onResume() {
+        Log.d(TAG,"MAINACTIVITY ON-RESUME METHOD CALLED");
+        URLHandler.setActivity(this);
         super.onResume();
         localIp = get_ip_address();
         port = cs.mPort;
@@ -61,14 +69,15 @@ public class MainActivity extends AppCompatActivity {
             mNSDManager.registerService(cs.mPort);
             mNSDManager.discoverServices();
         }
-        URLHandler.setActivity(this);
+
 
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onPause() {
-        //urlHandler.removeActivity();
+        Log.d(TAG,"MAINACTIVITY ON-PAUSE METHOD CALLED");
+        URLHandler.removeActivity();
         if (mNSDManager != null) {
             mNSDManager.stopDiscovery();
         }
@@ -78,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onDestroy() {
+        Log.d(TAG,"MAINACTIVITYY ON-DESTROY METHOD CALLED");
         URLHandler.removeActivity();
         if (mNSDManager != null) {
             mNSDManager.tearDown();
@@ -89,7 +99,8 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onStop() {
-        URLHandler.removeActivity();
+        Log.d(TAG,"MAINACTIVITY ON-STOP METHOD CALLED");
+       // URLHandler.removeActivity();
         if (mNSDManager != null) {
             mNSDManager.tearDown();
             mNSDManager = null;
@@ -193,5 +204,16 @@ public class MainActivity extends AppCompatActivity {
     public void createGroupEntry(View view) {
         Intent intent = new Intent(this, CreateGroupActivity.class);
         startActivity(intent);
+    }
+
+    public static MainActivity getInstance(){
+        return mainActivity;
+    }
+
+    public static String getMyDetails(){
+        return myUserName + " " +localIp +" "+ port + ",";
+    }
+    public static String getMyUserName(){
+        return myUserName;
     }
 }

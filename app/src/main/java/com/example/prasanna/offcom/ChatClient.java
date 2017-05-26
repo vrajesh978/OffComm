@@ -44,10 +44,12 @@ public class ChatClient {
 
     public void sendData(final UserInfo u, final HashMap<String, String> content) throws UnknownHostException {
         final Inet4Address inet = (Inet4Address) InetAddress.getByName(u.ip);
+        Log.d(TAG,"USRENAME(GROUP) = "+u.userName + " Ip = " + u.ip + " PORT = " + u.port);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
+
                     connectSocket(inet, u.port);
                     _sendData(content);
                     socket.close();
@@ -92,6 +94,7 @@ public class ChatClient {
                 @Override
                 public void run() {
                     try {
+                        if(!(u.userName.equals(MainActivity.getMyUserName())))
                         sendData(u, content);
                     }
                     catch (UnknownHostException e) {};

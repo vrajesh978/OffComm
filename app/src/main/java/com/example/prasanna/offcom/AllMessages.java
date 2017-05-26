@@ -22,6 +22,7 @@ public class AllMessages {
 	public void addSentMessage(Message msg) {
 		if(msg.isGroup()) {
 			GroupMessage groupmsg = gMsg.get(msg.getReceiver());
+            Log.d(TAG,"receiver name = " + msg.getReceiver());
             if (groupmsg == null) {
                 gMsg.put(msg.getReceiver(), new GroupMessage(gl.getGroup(msg.getReceiver())));
                 groupmsg = gMsg.get(msg.getReceiver());
@@ -41,11 +42,14 @@ public class AllMessages {
 	public void addReceivedMessage(Message msg) {
         if(msg.isGroup()) {
             GroupMessage groupmsg = gMsg.get(msg.getReceiver());
+            Log.d(TAG,"receiver name = " + msg.getReceiver());
             if (groupmsg == null) {
-                gMsg.put(msg.getSender(), new GroupMessage(gl.getGroup(msg.getSender()))); //getSender
-                groupmsg = gMsg.get(msg.getSender()); //getSender
+                gMsg.put(msg.getReceiver(), new GroupMessage(gl.getGroup(msg.getReceiver()))); //getSender
+                groupmsg = gMsg.get(msg.getReceiver()); //getSender
+                Log.d(TAG, "addReceivedMessage: first Groupmsg ");
             }
             groupmsg.addMessage(msg);
+            Log.d(TAG, "addReceivedMessage: Groupmsg  added to list");
         }
         else {
             PersonalMessage personalmsg = pMsg.get(msg.getSender());
