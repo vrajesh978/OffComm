@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //Log.d(TAG,"MAINACTIVITY ON-CREATE METHOD CALLED");
+
         //URLHandler.setActivity(this);
         mainActivity = this;
         super.onCreate(savedInstanceState);
