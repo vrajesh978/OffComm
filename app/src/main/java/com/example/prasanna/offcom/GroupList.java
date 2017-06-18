@@ -3,6 +3,7 @@ package com.example.prasanna.offcom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by prasanna on 7/1/17.
@@ -24,7 +25,7 @@ public class GroupList {
     }
 
     public List<GroupInfo> getGroups() {
-        return (List<GroupInfo>) new ArrayList<GroupInfo>(groupList.values());
+        return (List<GroupInfo>) new CopyOnWriteArrayList<GroupInfo>(groupList.values());
     }
 
     public void addToGroup(String name, UserInfo u) {

@@ -1,6 +1,11 @@
 package com.example.prasanna.offcom;
 
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.support.v7.app.NotificationCompat;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
@@ -14,6 +19,8 @@ import java.io.PrintStream;
 import java.net.InterfaceAddress;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static android.content.ContentValues.TAG;
 
@@ -26,9 +33,9 @@ public class URLHandler {
     private OutputStream sout;
     private InputStream sin;
     private static Activity callback;
-    private HashMap<String, String> data;
+    private Map<String, String> data;
     private AllMessages allMessages;
-
+    //private  MainActivity mainActivity;
     UserList ul = GlobalVariables.getUserList();
     GroupList gl = GlobalVariables.getGroupList();
 
@@ -44,7 +51,7 @@ public class URLHandler {
             JsonReader jr = new JsonReader(new InputStreamReader(sin));
             out = new PrintStream(sout);
             jr.beginObject();
-            data = new HashMap<String, String>();
+            data = new ConcurrentHashMap<>();
             while(jr.hasNext()) {
                 String key = jr.nextName();
                 String name = jr.nextString();
@@ -87,8 +94,11 @@ public class URLHandler {
         // Message(txt, to, from, isfile, isgroup)
         Message m = new Message(text, receiver, sender, isFile, isGroup);
         allMessages.addReceivedMessage(m);
+       // mainActivity = MainActivity.getInstance();
+        //mainActivity.addNotification(m.getText(),m.getSender());
         this.displayMessage();
     }
+
 
     private void handleGroupCreationMessage() {
         String groupName = data.get("groupName");
@@ -120,8 +130,8 @@ public class URLHandler {
         //TODO: Implement function to send file.
     }
 
-    private HashMap<String, String> share_file() {
-        HashMap<String, String> retMessage = new HashMap<String, String>();
+    private Map<String, String> share_file() {
+        Map<String, String> retMessage = new ConcurrentHashMap<>();
         retMessage.put("content_type", "file");
         retMessage.put("file_name", data.get("file_name"));
         retMessage.put("file_size", data.get("file_size"));

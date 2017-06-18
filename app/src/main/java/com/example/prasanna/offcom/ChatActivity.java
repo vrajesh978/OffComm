@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.NotificationCompat;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.view.View;
@@ -45,16 +46,17 @@ public class ChatActivity extends AppCompatActivity {
         gl = GlobalVariables.getGroupList();
         allMessages = GlobalVariables.getAllMessages();
         cursor = 0;
-
-        // Show already received messages.
-        this.checkExisitingMessages();
     }
+
+
 
     @Override
     public void onResume() {
         //Log.d(TAG,"CHATACTIVITY ON-RESUME METHOD CALLED");
         URLHandler.setActivity(this);
         super.onResume();
+
+        //this.checkExisitingMessages();
         scale = this.getResources().getDisplayMetrics().density;
         isGroup = intent.getBooleanExtra("isGroup", false);
         currentRecipient = intent.getStringExtra("recipient");
@@ -65,6 +67,10 @@ public class ChatActivity extends AppCompatActivity {
         // Show name of current recipient.
         TextView name = (TextView) findViewById(R.id.userName);
         name.setText(currentRecipient);
+
+        try {
+            displayMessageFromStart();
+        }catch (NullPointerException e){}
     }
 
     public void onPause() {
@@ -88,21 +94,22 @@ public class ChatActivity extends AppCompatActivity {
 
     public void displayMessage() {
         MessageList msgList;
+
         if (isGroup) {
             msgList = allMessages.getMessagesForGroup(currentRecipient);
-            Log.d(TAG,"messages size = " + msgList.messageList.size());
+            //Log.d(TAG,"messages size = " + msgList.messageList.size());
         }
         else {
             msgList = allMessages.getMessagesForUser(currentRecipient);
-            Log.d(TAG,"messages size = " + msgList.getMessageList().size());
+           // Log.d(TAG,"messages size = " + msgList.getMessageList().size());
         }
-
+        cursor = msgList.getMessageList().size();
         LinearLayout ll = (LinearLayout) findViewById(R.id.messageList);
-        for (Message msg: msgList.getMessageList().subList(cursor, msgList.getMessageList().size())) {
+        for (Message msg: msgList.getMessageList().subList(cursor-1, msgList.getMessageList().size())) {
             TextView msgView = ViewWrapper.getMessageBox(msg, this);
             ll.addView(msgView);
         }
-        cursor = msgList.getMessageList().size();
+
         // Scroll to bottom of messages.
         ScrollView scroll = (ScrollView) findViewById(R.id.chatScroll);
         scroll.fullScroll(View.FOCUS_DOWN);
@@ -151,6 +158,29 @@ public class ChatActivity extends AppCompatActivity {
         this.displayMessage();
     }
 
+
+    private void displayMessageFromStart() {
+        int cur = 0;
+        MessageList msgList;
+        if (isGroup) {
+            msgList = allMessages.getMessagesForGroup(currentRecipient);
+            Log.d(TAG,"messages size = " + msgList.messageList.size());
+        }
+        else {
+            msgList = allMessages.getMessagesForUser(currentRecipient);
+            Log.d(TAG,"messages size = " + msgList.getMessageList().size());
+        }
+
+        LinearLayout ll = (LinearLayout) findViewById(R.id.messageList);
+        for (Message msg: msgList.getMessageList().subList(cur, msgList.getMessageList().size())) {
+            TextView msgView = ViewWrapper.getMessageBox(msg, this);
+            ll.addView(msgView);
+        }
+        cur = msgList.getMessageList().size();
+        // Scroll to bottom of messages.
+        ScrollView scroll = (ScrollView) findViewById(R.id.chatScroll);
+        scroll.fullScroll(View.FOCUS_DOWN);
+    }
 
     //get the instance of ChatActivity
     public static ChatActivity getInstance(){

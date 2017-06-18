@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.RunnableFuture;
 
 import static android.content.ContentValues.TAG;
@@ -32,7 +33,7 @@ public class ChatClient {
         Log.d(TAG, "Connected to socket");
     }
 
-    private void _sendData(HashMap<String, String> content) throws IOException{
+    private void _sendData(Map<String, String> content) throws IOException{
         JsonWriter jw = new JsonWriter(new OutputStreamWriter(socket.getOutputStream()));
         jw.beginObject();
         for (HashMap.Entry<String, String> it : content.entrySet()) {
@@ -42,7 +43,7 @@ public class ChatClient {
         jw.flush();
     }
 
-    public void sendData(final UserInfo u, final HashMap<String, String> content) throws UnknownHostException {
+    public void sendData(final UserInfo u, final Map<String, String> content) throws UnknownHostException {
         final Inet4Address inet = (Inet4Address) InetAddress.getByName(u.ip);
         //Log.d(TAG,"USRENAME(GROUP) = "+u.userName + " Ip = " + u.ip + " PORT = " + u.port);
         new Thread(new Runnable() {
@@ -63,7 +64,7 @@ public class ChatClient {
 
     public void sendMessage(Message msg) throws UnknownHostException {
         boolean isGroup = msg.isGroup();
-        final HashMap<String, String> content = ProtocolHandler.messageWrapper(msg);
+        final Map<String, String> content = ProtocolHandler.messageWrapper(msg);
         if (isGroup) {
             GroupInfo g = gl.getGroup(msg.getReceiver());
 
@@ -88,7 +89,7 @@ public class ChatClient {
     }
 
     public void sendGroupCreationMessage(GroupInfo g) {
-        final HashMap<String, String> content = ProtocolHandler.groupCreationWrapper(g);
+        final Map<String, String> content = ProtocolHandler.groupCreationWrapper(g);
         for (final UserInfo u: g.getGroupParticipant()) {
             new Thread(new Runnable() {
                 @Override

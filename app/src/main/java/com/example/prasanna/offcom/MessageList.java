@@ -1,6 +1,7 @@
 package com.example.prasanna.offcom;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by prasanna on 23/5/17.
@@ -9,9 +10,9 @@ import java.util.ArrayList;
 
 
 public class MessageList {
-    protected ArrayList<Message> messageList;
+    protected List<Message> messageList;
 
-    public ArrayList<Message> getMessageList() {
+    public List<Message> getMessageList() {
         return messageList;
     }
 }

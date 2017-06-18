@@ -1,12 +1,13 @@
 package com.example.prasanna.offcom;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GroupMessage extends MessageList{
     GroupInfo groupInfo;
 	
 	public GroupMessage(GroupInfo g) {
-		messageList = new ArrayList<Message>();
+		messageList = new CopyOnWriteArrayList<Message>();
         groupInfo = g;
 	}
 

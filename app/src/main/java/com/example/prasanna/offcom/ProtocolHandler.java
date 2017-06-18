@@ -3,6 +3,8 @@ package com.example.prasanna.offcom;
 import android.util.Log;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static android.content.ContentValues.TAG;
 
@@ -11,8 +13,8 @@ import static android.content.ContentValues.TAG;
  */
 
 public class ProtocolHandler {
-    public static HashMap<String, String> messageWrapper(Message msg) {
-        HashMap<String, String> content = new HashMap<>();
+    public static Map<String, String> messageWrapper(Message msg) {
+        Map<String, String> content = new ConcurrentHashMap<>();
         content.put("route", "message");
         content.put("text", msg.getText());
         content.put("from", msg.getSender());
@@ -21,8 +23,8 @@ public class ProtocolHandler {
         return content;
     }
 
-    public static HashMap<String, String> groupCreationWrapper(GroupInfo group) {
-        HashMap<String, String> content = new HashMap<>();
+    public static Map<String, String> groupCreationWrapper(GroupInfo group) {
+        Map<String, String> content = new ConcurrentHashMap<>();
         content.put("route", "groupCreationMessage");
         content.put("groupName", group.getName());
         //getting own machine details

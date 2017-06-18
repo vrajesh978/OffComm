@@ -1,6 +1,10 @@
 package com.example.prasanna.offcom;
 
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
 
@@ -9,6 +13,7 @@ import android.os.Bundle;
 
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -58,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         //Log.d(TAG,"MAINACTIVITY ON-RESUME METHOD CALLED");
+        this.displayUsers();
         URLHandler.setActivity(this);
         super.onResume();
         localIp = get_ip_address();
@@ -69,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
             mNSDManager.registerService(cs.mPort);
             mNSDManager.discoverServices();
         }
-
 
     }
 
@@ -217,5 +222,26 @@ public class MainActivity extends AppCompatActivity {
     public static String getMyUserName(){
         return myUserName;
     }
+
+
+    //notification
+    /*public void addNotification(String text,String sender) {
+        NotificationCompat.Builder builder =
+                (NotificationCompat.Builder) new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.common_plus_signin_btn_text_light_normal)
+                        .setContentTitle(sender)
+                        .setContentText(text);
+
+
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(contentIntent);
+
+        // Add as notification
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.notify(0, builder.build());
+    }*/
 
 }

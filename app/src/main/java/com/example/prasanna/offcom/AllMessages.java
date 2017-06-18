@@ -2,19 +2,21 @@ package com.example.prasanna.offcom;
 
 import android.util.Log;
 
-import java.util.HashMap;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static android.content.ContentValues.TAG;
 
 public class AllMessages {
-	private HashMap<String, PersonalMessage> pMsg;
-	private HashMap<String, GroupMessage> gMsg;
+	private Map<String, PersonalMessage> pMsg;
+	private Map<String, GroupMessage> gMsg;
     private UserList ul;
     private GroupList gl;
 
 	public AllMessages(UserList ul, GroupList gl) {
-		pMsg = new HashMap<>();
-		gMsg = new HashMap<>();
+		pMsg = new ConcurrentHashMap<>();
+		gMsg = new ConcurrentHashMap<>();
         this.ul = ul;
         this.gl = gl;
 	}
